@@ -1,0 +1,289 @@
+const firstLesson = {
+  id: "mission-001",
+  title: "失落的能源方块",
+  planet: "字母森林星",
+  steps: [
+    {
+      id: "s",
+      grapheme: "s",
+      ipa: "/s/",
+      theme: "mint",
+      audio: "/audio/phoneme-s.mp3",
+      parentTip:
+        "一起模仿小蛇的嘶嘶声。只发 /s/，不要读成字母名称，也不要在后面加「呃」。",
+      words: [
+        { word: "sun", meaning: "太阳", audio: "/audio/sun.mp3" },
+        { word: "snake", meaning: "蛇", audio: "/audio/snake.mp3" },
+        { word: "sock", meaning: "袜子", audio: "/audio/sock.mp3" },
+      ],
+    },
+    {
+      id: "a",
+      grapheme: "a",
+      ipa: "/æ/",
+      theme: "peach",
+      audio: "/audio/phoneme-a.mp3",
+      parentTip:
+        "先示范 apple 开头的短元音，再请孩子模仿。这里学习的是短 /æ/，不是字母名称 /eɪ/。三个例词都使用美式英语开头的短 /æ/。",
+      words: [
+        { word: "apple", meaning: "苹果", audio: "/audio/apple.mp3" },
+        { word: "ant", meaning: "蚂蚁", audio: "/audio/ant.mp3" },
+        { word: "alligator", meaning: "短吻鳄", audio: "/audio/alligator.mp3" },
+      ],
+    },
+    {
+      id: "t",
+      grapheme: "t",
+      ipa: "/t/",
+      theme: "lavender",
+      audio: "/audio/phoneme-t.mp3",
+      parentTip:
+        "舌尖轻碰上齿龈，然后短促地放开。发一个轻而短的 /t/，避免在后面加元音，也不要读成字母名称 /tiː/。",
+      words: [
+        { word: "top", meaning: "陀螺", audio: "/audio/top.mp3" },
+        { word: "tiger", meaning: "老虎", audio: "/audio/tiger.mp3" },
+        { word: "turtle", meaning: "海龟", audio: "/audio/turtle.mp3" },
+      ],
+    },
+  ],
+} as const;
+
+const firstRounds = [
+  { word: "at", letters: ["t", "a"], audio: "/audio/at.mp3" },
+  { word: "sat", letters: ["t", "s", "a"], audio: "/audio/sat.mp3" },
+] as const;
+const firstSpeaking = {
+  word: "apple",
+  question: "What is it?",
+  answer: "It's an apple.",
+  questionAudio: "/audio/what-is-it.mp3",
+  answerAudio: "/audio/its-an-apple.mp3",
+} as const;
+export const planets = [
+  { id: "forest", name: "字母森林星", activity: "认声音", art: "forest" },
+  { id: "dunes", name: "拼读沙丘星", activity: "拼单词", art: "desert" },
+  { id: "crystal", name: "对话水晶星", activity: "开口说", art: "ice" },
+] as const;
+export type PlanetId = (typeof planets)[number]["id"];
+
+export type SoundStep = {
+  id: string;
+  grapheme: string;
+  ipa: string;
+  theme: string;
+  audio: string;
+  parentTip: string;
+  words: readonly {
+    word: string;
+    meaning: string;
+    audio: string;
+    usageType?: "oral_only";
+  }[];
+};
+export type Lesson = {
+  id: string;
+  title: string;
+  steps: readonly SoundStep[];
+  blendRounds: readonly {
+    word: string;
+    letters: readonly string[];
+    audio: string;
+    usageType: "decodable";
+    requires: readonly string[];
+  }[];
+  speakingTask: {
+    word: string;
+    question: string;
+    answer: string;
+    questionAudio: string;
+    answerAudio: string;
+    usageType: "oral_only";
+  };
+};
+function sound(
+  id: string,
+  ipa: string,
+  theme: string,
+  words: [string, string][],
+  parentTip: string,
+): SoundStep {
+  return {
+    id,
+    grapheme: id,
+    ipa,
+    theme,
+    parentTip,
+    audio: `/audio/phoneme-${id}.mp3`,
+    words: words.map(([word, meaning]) => ({
+      word,
+      meaning,
+      audio: `/audio/${word}.mp3`,
+      usageType: "oral_only",
+    })),
+  };
+}
+function rounds(words: string[]) {
+  return words.map((word) => ({
+    word,
+    letters: [...word].reverse(),
+    audio: `/audio/${word}.mp3`,
+    usageType: "decodable" as const,
+    requires: [...new Set(word)],
+  }));
+}
+function speaking(word: string) {
+  return {
+    word,
+    question: "What is it?",
+    answer: `It's a ${word}.`,
+    questionAudio: "/audio/what-is-it.mp3",
+    answerAudio: `/audio/its-a-${word}.mp3`,
+    usageType: "oral_only" as const,
+  };
+}
+export const lessons: readonly Lesson[] = [
+  {
+    ...firstLesson,
+    steps: firstLesson.steps.map((step) => ({
+      ...step,
+      words: step.words.map((word) => ({
+        ...word,
+        usageType: "oral_only" as const,
+      })),
+    })),
+    blendRounds: firstRounds.map((round) => ({
+      ...round,
+      usageType: "decodable" as const,
+      requires: [...round.word],
+    })),
+    speakingTask: { ...firstSpeaking, usageType: "oral_only" },
+  },
+  {
+    id: "mission-002",
+    title: "新的字母能源",
+    steps: [
+      sound(
+        "p",
+        "/p/",
+        "mint",
+        [
+          ["pig", "小猪"],
+          ["pen", "钢笔"],
+          ["pan", "平底锅"],
+        ],
+        "双唇闭合后轻轻放开，短促发 /p/，不要读成字母名称或加元音。",
+      ),
+      sound(
+        "i",
+        "/ɪ/",
+        "peach",
+        [
+          ["ink", "墨水"],
+          ["insect", "昆虫"],
+          ["igloo", "冰屋"],
+        ],
+        "示范 ink 开头的短 /ɪ/，不是字母名称 /aɪ/。三个例词均以短 /ɪ/ 开头。",
+      ),
+      sound(
+        "n",
+        "/n/",
+        "lavender",
+        [
+          ["net", "网"],
+          ["nest", "鸟巢"],
+          ["nut", "坚果"],
+        ],
+        "舌尖抵上齿龈，让声音从鼻腔出来，发 /n/，不要附加元音。",
+      ),
+    ],
+    blendRounds: rounds(["pin", "sit", "tap"]),
+    speakingTask: speaking("pig"),
+  },
+  {
+    id: "mission-003",
+    title: "找到探险地图",
+    steps: [
+      sound(
+        "m",
+        "/m/",
+        "mint",
+        [
+          ["map", "地图"],
+          ["moon", "月亮"],
+          ["mouse", "老鼠"],
+        ],
+        "合上双唇，轻轻哼出 /m/，感受鼻腔振动，不要读成字母名称。",
+      ),
+      sound(
+        "d",
+        "/d/",
+        "peach",
+        [
+          ["dog", "小狗"],
+          ["duck", "鸭子"],
+          ["dinosaur", "恐龙"],
+        ],
+        "舌尖轻碰上齿龈后放开，声带振动，短促发 /d/，避免附加元音。",
+      ),
+    ],
+    blendRounds: rounds(["map", "mad", "dip"]),
+    speakingTask: speaking("map"),
+  },
+];
+export const courseUnits = [
+  {
+    name: "字母启航",
+    topics: [
+      "s · a · t",
+      "p · i · n",
+      "m · d",
+      "复习 8 个字母音",
+      "o · c · k",
+      "e · h · r",
+      "b · g · u",
+      "阶段复习",
+    ],
+  },
+  {
+    name: "单词矿场",
+    topics: [
+      "f · l",
+      "w · j",
+      "v · z",
+      "x · y · qu",
+      "短元音 a / i",
+      "短元音 o / u / e",
+      "辅音连缀入门",
+      "综合复习",
+    ],
+  },
+  {
+    name: "冰雪遗迹",
+    topics: Array.from({ length: 8 }, (_, i) =>
+      i < 4 ? "辅音连缀与双写" : "辅音字母组合",
+    ),
+  },
+  {
+    name: "魔法之星",
+    topics: Array.from({ length: 8 }, (_, i) =>
+      i < 4 ? "Magic E" : "常见长元音组合",
+    ),
+  },
+  {
+    name: "海洋秘境",
+    topics: Array.from({ length: 8 }, (_, i) =>
+      i < 4 ? "r 控制元音" : "其他元音组合",
+    ),
+  },
+  {
+    name: "银河空间站",
+    topics: Array.from({ length: 8 }, (_, i) =>
+      i < 4 ? "句子与短篇阅读" : "综合复习与表达",
+    ),
+  },
+];
+// Compatibility exports for first-lesson consumers; new pages select by lessonIndex.
+export const lesson = lessons[0];
+export const STEP_COUNT = lesson.steps.length;
+export const blendRounds = lesson.blendRounds;
+export const speakingTask = lesson.speakingTask;
