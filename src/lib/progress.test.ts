@@ -1,6 +1,14 @@
 import { reconcileRewards } from "./space";
 import { lessons, courseUnits } from "../data/lesson";
+import { reviewForLesson } from "../data/reviews";
 import { unitOneArtWords } from "../components/UnitOneWordArt";
+import { newArtWords } from "../components/NewWordArt";
+import { legacyArtWords } from "../components/Art";
+import {
+  advanceReviewDialogue,
+  completeReviewSound,
+  placeReviewWord,
+} from "./review";
 const audioFiles = import.meta.glob("../../public/audio/*.mp3", {
   query: "?url",
   import: "default",
@@ -155,9 +163,17 @@ describe("saved progress and planet route", () => {
 });
 
 function finishCourse(state: Progress) {
-  for (let i = 0; i < lessons[state.lessonIndex].steps.length; i++)
-    state = completeStep(state);
-  for (const [i, round] of lessons[state.lessonIndex].blendRounds.entries())
+  const lesson = lessons[state.lessonIndex];
+  const review = reviewForLesson(lesson.id);
+  for (let i = 0; i < lesson.steps.length; i++)
+    state = review ? completeReviewSound(state) : completeStep(state);
+  if (review) {
+    for (const i of lesson.blendRounds.keys())
+      state = placeReviewWord(state, i);
+    for (const _ of review.dialogue) state = advanceReviewDialogue(state);
+    return state;
+  }
+  for (const [i, round] of lesson.blendRounds.entries())
     state = checkBlend({
       ...state,
       blendRound: i,
@@ -266,6 +282,29 @@ describe("sequential courses", () => {
       expect(hasAudioFile(`public${lesson.speakingTask.answerAudio}`)).toBe(
         true,
       );
+      const review = reviewForLesson(lesson.id);
+      if (review) {
+        for (const batch of review.soundBatches)
+          for (const item of batch.items)
+            expect(item.meaning.trim().length).toBeGreaterThan(0);
+        for (const line of review.dialogue) {
+          expect(line.npc.trim().length).toBeGreaterThan(0);
+          expect(line.npcMeaning.trim().length).toBeGreaterThan(0);
+          expect(line.reply.trim().length).toBeGreaterThan(0);
+          expect(line.replyMeaning.trim().length).toBeGreaterThan(0);
+          expect(hasAudioFile(`public${line.npcAudio}`)).toBe(true);
+          expect(hasAudioFile(`public${line.replyAudio}`)).toBe(true);
+        }
+        for (const item of review.placementItems) {
+          expect(item.meaning.trim().length).toBeGreaterThan(0);
+          expect([
+            ...unitOneArtWords,
+            ...newArtWords,
+            ...legacyArtWords,
+          ]).toContain(item.word);
+          expect(hasAudioFile(`public/audio/${item.word}.mp3`)).toBe(true);
+        }
+      }
     }
   });
 });

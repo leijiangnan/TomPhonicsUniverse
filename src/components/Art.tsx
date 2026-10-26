@@ -1,6 +1,17 @@
 import { NewWordArt, newArtWords } from "./NewWordArt";
 import { UnitOneWordArt, unitOneArtWords } from "./UnitOneWordArt";
 import { useId } from "react";
+export const legacyArtWords = [
+  "sun",
+  "snake",
+  "sock",
+  "apple",
+  "ant",
+  "alligator",
+  "top",
+  "tiger",
+  "turtle",
+] as const;
 export function Cube({
   x,
   y,

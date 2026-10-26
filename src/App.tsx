@@ -10,8 +10,12 @@ import {
   BookOpen,
   Check,
   House,
+  Maximize2,
+  Minimize2,
   Rocket,
   Settings2,
+  Share2,
+  SquarePlus,
   Volume2,
   VolumeX,
   X,
@@ -24,6 +28,10 @@ import { PhonicsLesson } from "./pages/PhonicsLesson";
 import { BlendingChallenge } from "./pages/BlendingChallenge";
 import { SpeakingChallenge } from "./pages/SpeakingChallenge";
 import { lessons, planets, type PlanetId } from "./data/lesson";
+import { reviewForLesson } from "./data/reviews";
+import { ReviewSoundScan } from "./pages/ReviewSoundScan";
+import { ReviewPlacementChallenge } from "./pages/ReviewPlacementChallenge";
+import { ReviewDialogueChallenge } from "./pages/ReviewDialogueChallenge";
 import {
   selectCourse,
   selectCourseForPreview,
@@ -37,8 +45,20 @@ import {
   planetStatus,
   type Progress,
 } from "./lib/progress";
+import {
+  advanceReviewDialogue,
+  completeReviewSound,
+  placeReviewWord,
+} from "./lib/review";
 import { playAudio, stopAudio } from "./lib/audio";
-type Modal = "settings" | "locked" | "celebration" | null;
+type Modal = "settings" | "fullscreen" | "locked" | "celebration" | null;
+type WebkitDocument = Document & {
+  webkitFullscreenElement?: Element | null;
+  webkitExitFullscreen?: () => Promise<void> | void;
+};
+type WebkitElement = HTMLElement & {
+  webkitRequestFullscreen?: () => Promise<void> | void;
+};
 export default function App() {
   const {
     progress: savedProgress,
@@ -64,6 +84,7 @@ export default function App() {
     [previewEnabled, saveProgress, savedProgress],
   );
   const lesson = lessons[progress.lessonIndex];
+  const review = reviewForLesson(lesson.id);
   const blendRounds = lesson.blendRounds;
   const STEP_COUNT = lesson.steps.length;
   const goCourse = (n: number) => {
@@ -79,7 +100,14 @@ export default function App() {
   const [notice, setNotice] = useState("");
   const [playingSrc, setPlayingSrc] = useState<string | null>(null);
   const [feedback, setFeedback] = useState("");
+  const [fullscreen, setFullscreen] = useState(false);
+  const [standalone] = useState(
+    () =>
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (navigator as Navigator & { standalone?: boolean }).standalone === true,
+  );
   const audioRequest = useRef(0);
+  const appShell = useRef<HTMLDivElement>(null);
   const togglePreview = (enabled: boolean) => {
     audioRequest.current++;
     stopAudio();
@@ -121,6 +149,42 @@ export default function App() {
     const timeout = setTimeout(() => setNotice(""), 6000);
     return () => clearTimeout(timeout);
   }, [notice]);
+  useEffect(() => {
+    const update = () =>
+      setFullscreen(
+        Boolean(
+          document.fullscreenElement ||
+            (document as WebkitDocument).webkitFullscreenElement,
+        ),
+      );
+    document.addEventListener("fullscreenchange", update);
+    document.addEventListener("webkitfullscreenchange", update);
+    update();
+    return () => {
+      document.removeEventListener("fullscreenchange", update);
+      document.removeEventListener("webkitfullscreenchange", update);
+    };
+  }, []);
+  const toggleFullscreen = async () => {
+    const webkitDocument = document as WebkitDocument;
+    const active =
+      document.fullscreenElement || webkitDocument.webkitFullscreenElement;
+    try {
+      if (active) {
+        if (document.exitFullscreen) await document.exitFullscreen();
+        else await webkitDocument.webkitExitFullscreen?.();
+        return;
+      }
+      const target = appShell.current as WebkitElement | null;
+      if (!target) return;
+      if (target.requestFullscreen) await target.requestFullscreen();
+      else if (target.webkitRequestFullscreen)
+        await target.webkitRequestFullscreen();
+      else setModal("fullscreen");
+    } catch {
+      setModal("fullscreen");
+    }
+  };
   const audio = useCallback(
     (src: string) => {
       const request = ++audioRequest.current;
@@ -153,7 +217,9 @@ export default function App() {
     setModal("celebration");
   };
   const finishLetter = () => {
-    const next = completeStep(progress);
+    const next = review
+      ? completeReviewSound(progress)
+      : completeStep(progress);
     if (progress.step === STEP_COUNT - 1 && forestDone(next)) {
       setProgress({ ...next, page: "map" });
       celebrate("forest");
@@ -184,6 +250,23 @@ export default function App() {
     if (progress.volume > 0) audio(blendRounds[progress.blendRound].audio);
   };
   const nextRound = () => {
+    if (review) {
+      const currentBatch = review.placementBatches[progress.blendRound];
+      const currentBatchDone = currentBatch.every((word) => {
+        const roundIndex = lesson.blendRounds.findIndex(
+          (round) => round.word === word,
+        );
+        return progress.reviewPlacements.includes(roundIndex);
+      });
+      if (!currentBatchDone) return;
+      if (progress.blendRound === review.placementBatches.length - 1) {
+        setProgress((p) => ({ ...p, page: "map" }));
+        celebrate("dunes");
+      } else {
+        setProgress((p) => ({ ...p, blendRound: p.blendRound + 1 }));
+      }
+      return;
+    }
     if (!progress.blendSolved) return;
     if (progress.blendRound === blendRounds.length - 1 && dunesDone(progress)) {
       setProgress((p) => ({ ...p, page: "map" }));
@@ -197,6 +280,15 @@ export default function App() {
       }));
   };
   const finishSpeaking = () => {
+    if (review) {
+      if (!dunesDone(progress)) return;
+      const next = advanceReviewDialogue(progress);
+      if (next.speakingCompleted) {
+        setProgress({ ...next, page: "map" });
+        celebrate("crystal");
+      } else setProgress(next);
+      return;
+    }
     if (
       !dunesDone(progress) ||
       (progress.lessonIndex === 0 && progress.dialogue?.node !== "completed")
@@ -217,7 +309,7 @@ export default function App() {
         ? planets[1].name
         : planets[2].name;
   return (
-    <div className="app-shell">
+    <div className="app-shell" ref={appShell}>
       <header className="topbar">
         {progress.page === "map" ? (
           <div className="brand">
@@ -255,6 +347,16 @@ export default function App() {
           >
             {muted ? <VolumeX size={24} /> : <Volume2 size={24} />}
           </button>
+          {!standalone && (
+            <button
+              className="icon-button"
+              aria-label={fullscreen ? "退出全屏" : "进入全屏"}
+              title={fullscreen ? "退出全屏" : "进入全屏"}
+              onClick={() => void toggleFullscreen()}
+            >
+              {fullscreen ? <Minimize2 size={24} /> : <Maximize2 size={24} />}
+            </button>
+          )}
           <button
             className="parent-button"
             aria-label="家长指南与设置"
@@ -294,6 +396,14 @@ export default function App() {
             goCourse(currentCourse(progress) < 0 ? 0 : currentCourse(progress))
           }
         />
+      ) : progress.page === "lesson" && review ? (
+        <ReviewSoundScan
+          progress={progress}
+          review={review}
+          onStep={changeStep}
+          onComplete={finishLetter}
+          onPlay={audio}
+        />
       ) : progress.page === "lesson" ? (
         <PhonicsLesson
           progress={progress}
@@ -301,6 +411,16 @@ export default function App() {
           onComplete={finishLetter}
           onPlay={audio}
           playingSrc={playingSrc}
+        />
+      ) : progress.page === "blending" && review ? (
+        <ReviewPlacementChallenge
+          progress={progress}
+          review={review}
+          onPlay={audio}
+          onPlace={(roundIndex) =>
+            setProgress((p) => placeReviewWord(p, roundIndex))
+          }
+          onNext={nextRound}
         />
       ) : progress.page === "blending" ? (
         <BlendingChallenge
@@ -310,6 +430,13 @@ export default function App() {
           onCheck={check}
           onNext={nextRound}
           feedback={feedback}
+        />
+      ) : review ? (
+        <ReviewDialogueChallenge
+          progress={progress}
+          review={review}
+          onPlay={audio}
+          onConfirm={finishSpeaking}
         />
       ) : progress.lessonIndex === 0 ? (
         <DialogueAdventure
@@ -356,9 +483,11 @@ export default function App() {
           title={
             modal === "settings"
               ? "家长陪伴指南"
-              : modal === "locked"
-                ? `先去${previousPlanet.name}`
-                : `${planet.name}点亮啦！`
+              : modal === "fullscreen"
+                ? "在 iPad 上全屏"
+                : modal === "locked"
+                  ? `先去${previousPlanet.name}`
+                  : `${planet.name}点亮啦！`
           }
           onClose={() => setModal(null)}
         >
@@ -370,21 +499,45 @@ export default function App() {
               </p>
               {progress.page === "lesson" && (
                 <div className="modal-note">
-                  <b>{lesson.steps[progress.step].grapheme} 的领读提示</b>
-                  <p>{lesson.steps[progress.step].parentTip}</p>
-                  <p>这三个例词只用于听说拓展，不要求孩子独立拼读。</p>
+                  {review ? (
+                    <>
+                      <b>声音扫描</b>
+                      <p>
+                        听目标音，再点场景中以该声音开头的物品。连续两次选错后会高亮正确物品，不扣分。
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <b>{lesson.steps[progress.step].grapheme} 的领读提示</b>
+                      <p>{lesson.steps[progress.step].parentTip}</p>
+                      <p>这三个例词只用于听说拓展，不要求孩子独立拼读。</p>
+                    </>
+                  )}
                 </div>
               )}
               {progress.page === "blending" && (
                 <div className="modal-note">
-                  本课练习 {blendRounds.map((r) => r.word).join("、")}
-                  ，只使用本课和之前学过的字母音。先听单词，再点选字母；拼错可以点格子移除，或重新放。
+                  {review ? (
+                    <>
+                      <b>词语归位</b>
+                      <p>
+                        本课练习 {blendRounds.map((r) => r.word).join("、")}
+                        。可以拖动单词，也可以先点单词再点对应物体；所有词都只使用已教规则。
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      本课练习 {blendRounds.map((r) => r.word).join("、")}
+                      ，只使用本课和之前学过的字母音。先听单词，再点选字母；拼错可以点格子移除，或重新放。
+                    </>
+                  )}
                 </div>
               )}
               {progress.page === "speaking" && (
                 <div className="modal-note">
-                  第一课是宇宙商店多轮对话；第 2–8
-                  课是配图口语任务。先听问题、观察图片并尝试开口，再由家长确认。系统不会录音，也不会判断发音是否准确。
+                  {review
+                    ? "复习课在刚刚整理好的飞船场景中完成多轮对话。先听机器人，再观察高亮物体并尝试回答，由家长确认推进。"
+                    : "第一课是宇宙商店多轮对话；第 2、3、5–7 课是配图口语任务。先听问题、观察图片并尝试开口，再由家长确认。系统不会录音，也不会判断发音是否准确。"}
                 </div>
               )}
               <div
@@ -456,6 +609,39 @@ export default function App() {
                 onClick={() => setModal(null)}
               >
                 返回学习 <Check size={21} />
+              </button>
+            </>
+          )}
+          {modal === "fullscreen" && (
+            <>
+              <p>
+                当前浏览器不允许网页直接隐藏顶部栏。把网站添加到主屏幕后，从主屏幕打开即可使用独立窗口。
+              </p>
+              <ol className="fullscreen-steps">
+                <li>
+                  <Share2 size={22} />
+                  <span>在 Safari 工具栏点击「分享」。</span>
+                </li>
+                <li>
+                  <SquarePlus size={22} />
+                  <span>选择「添加到主屏幕」。</span>
+                </li>
+                <li>
+                  <House size={22} />
+                  <span>回到主屏幕，点击「Tom 自然拼读」。</span>
+                </li>
+              </ol>
+              <div className="modal-note">
+                <b>说明</b>
+                <p>
+                  主屏幕模式会隐藏 Safari 顶部栏，但学习记录仍保存在当前设备。首次添加和打开需要由家长操作。
+                </p>
+              </div>
+              <button
+                className="button primary full"
+                onClick={() => setModal(null)}
+              >
+                知道了 <Check size={21} />
               </button>
             </>
           )}

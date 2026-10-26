@@ -49,13 +49,13 @@
 | 1 | s / a / t | at、sat | 宇宙商店：Hello / I want… / Thank you / Bye |
 | 2 | p / i / n | pin、sit、tap | What is it? → It's a pig. |
 | 3 | m / d | map、mad、dip | What is it? → It's a map. |
-| 4 | 复习 s / a / t / p / i / n / m / d | sat、pin、map | What do you see? → I see a map. |
+| 4 | 复习 s / a / t / p / i / n / m / d | map、pin、pan、mat 场景归位 | What do you see? → I see a map. |
 | 5 | o / c / k | cot、cop、kid | What do you see? → I see a cat. |
 | 6 | e / h / r | hen、red、pet | What do you like? → I like the hen. |
 | 7 | b / g / u | bug、big、mug | Is it big or small? → It's a big bug. |
-| 8 | 复习全部 17 个音 | cat、dog、sun、red | What do you see? → I see a red bug. |
+| 8 | 复习全部 17 个音 | cat、dog、mug、hat、bed、map、sun、rug 场景归位 | What do you see? / Where is the map? / Are we ready? |
 
-首课按用户要求升级为宇宙商店情景对话，支持苹果与宝石分支；`I want…` 作为有完整示范的听说表达提前体验，不作为独立拼读目标。下表的 `Hello! I'm Tom.` 仍为原课程草案示例。第 2–8 课采用配图单句任务，均不要求孩子独立解码口语句子。拼读题采用听音点字母；听音寻宝与飞船起飞挑战继续复用当前三阶段模板，独立游戏模板尚未实现。
+首课按用户要求升级为宇宙商店情景对话，支持苹果与宝石分支；`I want…` 作为有完整示范的听说表达提前体验，不作为独立拼读目标。第 2、3、5–7 课采用配图单句任务。第 4、8 课共享飞船场景完成声音扫描、可解码词归位和情景对话；拖放同时提供点选替代操作。所有口语句子只作听说任务，不要求孩子独立解码。
 
 17 个已教音各有三个点读图片词。新增内容为 o（octopus/ox/olive）、c（cat/cup/car）、k（key/kite/king）、e（egg/elephant/elbow）、h（hat/hand/horse）、r（rabbit/robot/rain）、b（ball/bed/bus）、g（goat/gift/gum）、u（umbrella/up/uncle）。这些图片词均用于听说拓展；例如 moon、key、kite、rain 等包含尚未教授的元音规则，不作为独立拼读题。全部音频仍为待人工校对的合成素材。
 

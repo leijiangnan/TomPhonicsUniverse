@@ -93,6 +93,21 @@ const art: Record<string, { label: string; drawing: ReactNode }> = {
       </g>
     ),
   },
+  pin: {
+    label: "大头针",
+    drawing: (
+      <g transform="rotate(28 150 105)">
+        <circle cx="106" cy="70" r="31" fill="#d77f78" />
+        <path
+          d="M127 91 205 169"
+          stroke="#778591"
+          strokeWidth="12"
+          strokeLinecap="round"
+        />
+        <path d="m205 169 18 20-22-17Z" fill="#596875" />
+      </g>
+    ),
+  },
   kite: {
     label: "风筝",
     drawing: (
@@ -276,12 +291,67 @@ const art: Record<string, { label: string; drawing: ReactNode }> = {
       </>
     ),
   },
+  mug: {
+    label: "马克杯",
+    drawing: (
+      <>
+        <path d="M82 52h126v122H82Z" fill="#7aa5b0" />
+        <path
+          d="M208 76h26q35 0 35 36t-61 39"
+          fill="none"
+          stroke="#7aa5b0"
+          strokeWidth="18"
+        />
+        <ellipse cx="145" cy="53" rx="63" ry="15" fill="#d8e6df" />
+        <ellipse cx="145" cy="55" rx="48" ry="9" fill="#6f5747" />
+        <path d="M105 87h35v12h-35Zm0 22h58v12h-58Z" fill="#d8e4c6" />
+      </>
+    ),
+  },
   umbrella: {
     label: "雨伞",
     drawing: (
       <>
         <path d="M49 105a101 83 0 0 1 202 0q-25-25-50 0-25-25-51 0-25-25-51 0-25-25-50 0Z" fill="#7aa8b7" />
         <path d="M150 39v112q0 35 31 28 20-5 18-29" fill="none" stroke="#566e78" strokeWidth="9" strokeLinecap="round" />
+      </>
+    ),
+  },
+  mat: {
+    label: "垫子",
+    drawing: (
+      <>
+        <path d="M48 62h204v103H48Z" fill="#79a78d" />
+        <path
+          d="m48 62 28-18h204l-28 18Zm204 0 28-18v103l-28 18Z"
+          fill="#577f6c"
+        />
+        <path
+          d="M78 83h144M78 110h144M78 137h144"
+          stroke="#d6d09a"
+          strokeWidth="8"
+          strokeLinecap="round"
+        />
+      </>
+    ),
+  },
+  rug: {
+    label: "地毯",
+    drawing: (
+      <>
+        <path d="M54 55h192v112H54Z" fill="#9a779f" />
+        <path
+          d="m54 55-22 15m22 9-22 15m22 9-22 15m22 9-22 15m214-87 22 15m-22 9 22 15m-22 9 22 15m-22 9 22 15"
+          stroke="#cfb7d1"
+          strokeWidth="6"
+          strokeLinecap="round"
+        />
+        <path
+          d="m84 83 31 31-31 31m132-62-31 31 31 31M126 78h48v72h-48Z"
+          fill="none"
+          stroke="#e3d29b"
+          strokeWidth="8"
+        />
       </>
     ),
   },

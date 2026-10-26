@@ -375,7 +375,12 @@ export const lessons: readonly Lesson[] = [
     focus: "复习前 8 个字母音",
     review: true,
     steps: firstEightSteps,
-    blendRounds: rounds([["sat", "坐（sit 的过去式）"], ["pin", "大头针"], ["map", "地图"]]),
+    blendRounds: rounds([
+      ["map", "地图"],
+      ["pin", "大头针"],
+      ["pan", "平底锅"],
+      ["mat", "垫子"],
+    ]),
     speakingTask: speakingPrompt(
       "map",
       "What do you see?",
@@ -432,7 +437,16 @@ export const lessons: readonly Lesson[] = [
     focus: "字母启航总复习",
     review: true,
     steps: firstUnitSteps,
-    blendRounds: rounds([["cat", "小猫"], ["dog", "小狗"], ["sun", "太阳"], ["red", "红色的"]]),
+    blendRounds: rounds([
+      ["cat", "小猫"],
+      ["dog", "小狗"],
+      ["mug", "马克杯"],
+      ["hat", "帽子"],
+      ["bed", "床"],
+      ["map", "地图"],
+      ["sun", "太阳"],
+      ["rug", "地毯"],
+    ]),
     speakingTask: speakingPrompt(
       "bug",
       "What do you see?",

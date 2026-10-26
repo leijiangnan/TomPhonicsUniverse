@@ -2,4 +2,7 @@ node_modules/
 dist/
 *.tsbuildinfo
 .DS_Store
-artifacts/
+artifacts/*
+!artifacts/science-research/
+artifacts/science-research/*
+!artifacts/science-research/images.json

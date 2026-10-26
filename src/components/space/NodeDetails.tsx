@@ -24,11 +24,12 @@ export function NodeDetails({ node }: { node: CatalogNode }) {
         <div><dt><Ruler size={20} />有多大</dt><dd>{science.size}</dd></div>
       </dl>
       <p className="node-description">{science.description}</p>
-      <p className="science-source"><a href={science.source} target="_blank" rel="noreferrer">查看科普资料<ExternalLink size={15} /></a>{image && <span>图片：{image.credit} · <a href={image.source} target="_blank" rel="noreferrer">来源与许可<ExternalLink size={15} /></a></span>}</p>
+      <p className="science-source"><a href={science.source} target="_blank" rel="noreferrer">查看科普资料<ExternalLink size={15} /></a>{image && <span>图片：{image.credit} · {image.source ? <a href={image.source} target="_blank" rel="noreferrer">来源与许可<ExternalLink size={15} /></a> : <span>原始来源与许可待确认</span>}</span>}</p>
     </> : <div className="fiction-facts">
       <p><strong>虚构游戏设施</strong></p>
       <p>与地球的距离和大小由游戏设定决定，不能与国际空间站混为一谈。</p>
-      <p>这里是领取补给和交流的地方，没有真实照片。</p>
+      <p>这里是领取补给和交流的地方。{image ? "配图来自真实补给飞船，作为游戏场景参考。" : "没有真实照片。"}</p>
+      {image && <p className="science-source">图片：{image.credit} · {image.source ? <a href={image.source} target="_blank" rel="noreferrer">来源与许可<ExternalLink size={15} /></a> : <span>原始来源与许可待确认</span>}</p>}
     </div>}
   </div>;
 }

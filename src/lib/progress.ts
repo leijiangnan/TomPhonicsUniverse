@@ -1,6 +1,7 @@
 import { initialSpace, restoreSpace, type SpaceProgress } from "./space";
 import { parseDialogue, type DialogueState } from "./dialogue";
 import { lessons, type PlanetId } from "../data/lesson";
+import { reviewForLesson } from "../data/reviews";
 // Retain the original key across all data migrations.
 export const STORAGE_KEY = "tom-phonics-progress-v1";
 export type Progress = {
@@ -18,6 +19,9 @@ export type Progress = {
   blendDraft: string[];
   blendSolved: boolean;
   speakingCompleted: boolean;
+  reviewSounds: number[];
+  reviewPlacements: number[];
+  reviewDialogueStep: number;
 };
 export type LessonProgress = Pick<
   Progress,
@@ -28,6 +32,9 @@ export type LessonProgress = Pick<
   | "blendDraft"
   | "blendSolved"
   | "speakingCompleted"
+  | "reviewSounds"
+  | "reviewPlacements"
+  | "reviewDialogueStep"
   | "dialogue"
 >;
 export const initialProgress: Progress = {
@@ -44,6 +51,9 @@ export const initialProgress: Progress = {
   blendDraft: [],
   blendSolved: false,
   speakingCompleted: false,
+  reviewSounds: [],
+  reviewPlacements: [],
+  reviewDialogueStep: 0,
 };
 function validIndices(value: unknown, count: number): number[] {
   return Array.isArray(value)
@@ -61,6 +71,14 @@ function index(value: unknown, count: number) {
     Number.isInteger(value) &&
     value >= 0 &&
     value < count
+    ? value
+    : 0;
+}
+function inclusiveIndex(value: unknown, max: number) {
+  return typeof value === "number" &&
+    Number.isInteger(value) &&
+    value >= 0 &&
+    value <= max
     ? value
     : 0;
 }
@@ -109,6 +127,9 @@ function snapshot(p: Progress): LessonProgress {
     blendDraft,
     blendSolved,
     speakingCompleted,
+    reviewSounds,
+    reviewPlacements,
+    reviewDialogueStep,
   } = p;
   return {
     step,
@@ -118,6 +139,9 @@ function snapshot(p: Progress): LessonProgress {
     blendDraft,
     blendSolved,
     speakingCompleted,
+    reviewSounds,
+    reviewPlacements,
+    reviewDialogueStep,
     ...(p.dialogue ? { dialogue: p.dialogue } : {}),
   };
 }
@@ -147,14 +171,15 @@ function switchCourse(p: Progress, n: number): Progress {
   if (n === p.lessonIndex) return { ...p, page: "map" };
   const records = { ...p.records, [lessons[p.lessonIndex].id]: snapshot(p) };
   delete records[lessons[n].id];
-  return {
+  const next: Progress = {
     ...p,
-    dialogue: undefined,
     ...snapshot(lessonProgress(p, n)),
     lessonIndex: n,
     page: "map",
     records,
   };
+  if (n !== 0) delete next.dialogue;
+  return next;
 }
 
 export function selectCourse(p: Progress, n: number): Progress {
@@ -172,6 +197,7 @@ function sanitize(
   legacy = false,
 ): Progress {
   const lesson = lessons[n];
+  const review = reviewForLesson(lesson.id);
   const state: Progress = {
     ...initialProgress,
     lessonIndex: n,
@@ -185,32 +211,80 @@ function sanitize(
     state.completed.length,
     lesson.steps.length - 1,
   );
+  if (review) {
+    state.reviewSounds = (
+      Object.hasOwn(v, "reviewSounds")
+        ? validIndices(v.reviewSounds, lesson.steps.length)
+        : [...state.completed]
+    ).filter((_, i, values) => values[i] === i);
+  }
   if (!legacy && forestDone(state)) {
-    state.blendCompleted = validIndices(
-      v.blendCompleted,
-      lesson.blendRounds.length,
-    );
-    state.blendCompleted = state.blendCompleted.filter((_, i, a) => a[i] === i);
-    state.blendRound = Math.min(
-      index(v.blendRound, lesson.blendRounds.length),
-      state.blendCompleted.length,
-      lesson.blendRounds.length - 1,
-    );
-    const pool = [...lesson.blendRounds[state.blendRound].letters];
-    state.blendDraft = [];
-    if (Array.isArray(v.blendDraft))
-      for (const letter of v.blendDraft) {
-        const at = pool.indexOf(letter);
-        if (at >= 0) {
-          state.blendDraft.push(letter);
-          pool.splice(at, 1);
+    const legacyReviewComplete =
+      review &&
+      !Object.hasOwn(v, "reviewDialogueStep") &&
+      v.speakingCompleted === true &&
+      validIndices(
+        v.blendCompleted,
+        review.legacyBlendRoundCount,
+      ).length === review.legacyBlendRoundCount;
+    if (legacyReviewComplete) {
+      state.blendCompleted = lesson.blendRounds.map((_, i) => i);
+      state.reviewPlacements = [...state.blendCompleted];
+      state.blendRound = review.placementBatches.length - 1;
+      state.speakingCompleted = true;
+      state.reviewDialogueStep = review.dialogue.length;
+    } else if (review && Object.hasOwn(v, "reviewPlacements")) {
+      state.blendCompleted = validIndices(
+        v.blendCompleted,
+        lesson.blendRounds.length,
+      );
+      state.reviewPlacements = validIndices(
+        v.reviewPlacements,
+        lesson.blendRounds.length,
+      ).filter((round) => state.blendCompleted.includes(round));
+      state.blendRound = index(
+        v.blendRound,
+        review.placementBatches.length,
+      );
+      state.speakingCompleted =
+        dunesDone(state) && v.speakingCompleted === true;
+      state.reviewDialogueStep = Math.min(
+        inclusiveIndex(v.reviewDialogueStep, review.dialogue.length),
+        state.speakingCompleted
+          ? review.dialogue.length
+          : review.dialogue.length - 1,
+      );
+    } else if (!review) {
+      state.blendCompleted = validIndices(
+        v.blendCompleted,
+        lesson.blendRounds.length,
+      );
+      state.blendCompleted = state.blendCompleted.filter(
+        (_, i, values) => values[i] === i,
+      );
+      state.blendRound = Math.min(
+        index(v.blendRound, lesson.blendRounds.length),
+        state.blendCompleted.length,
+        lesson.blendRounds.length - 1,
+      );
+      const pool = [...lesson.blendRounds[state.blendRound].letters];
+      state.blendDraft = [];
+      if (Array.isArray(v.blendDraft))
+        for (const letter of v.blendDraft) {
+          const at = pool.indexOf(letter);
+          if (at >= 0) {
+            state.blendDraft.push(letter);
+            pool.splice(at, 1);
+          }
         }
-      }
-    state.blendSolved =
-      v.blendSolved === true &&
-      state.blendDraft.join("") === lesson.blendRounds[state.blendRound].word &&
-      state.blendCompleted.includes(state.blendRound);
-    state.speakingCompleted = dunesDone(state) && v.speakingCompleted === true;
+      state.blendSolved =
+        v.blendSolved === true &&
+        state.blendDraft.join("") ===
+          lesson.blendRounds[state.blendRound].word &&
+        state.blendCompleted.includes(state.blendRound);
+      state.speakingCompleted =
+        dunesDone(state) && v.speakingCompleted === true;
+    }
   }
   if (n === 0 && dunesDone(state) && v.dialogue)
     state.dialogue = parseDialogue(v.dialogue);
@@ -307,11 +381,13 @@ export function checkBlend(progress: Progress): Progress {
 }
 export function openPlanet(progress: Progress, id: PlanetId): Progress {
   if (planetStatus(progress, id) === "locked") return progress;
+  const review = reviewForLesson(lessons[progress.lessonIndex].id);
   if (id === "forest")
     return {
       ...progress,
       page: "lesson",
       step: forestDone(progress) ? 0 : progress.step,
+      ...(review && forestDone(progress) ? { reviewSounds: [] } : {}),
     };
   if (id === "dunes")
     return dunesDone(progress)
@@ -321,9 +397,16 @@ export function openPlanet(progress: Progress, id: PlanetId): Progress {
           blendRound: 0,
           blendDraft: [],
           blendSolved: false,
+          ...(review ? { reviewPlacements: [] } : {}),
         }
       : { ...progress, page: "blending" };
-  return { ...progress, page: "speaking" };
+  return {
+    ...progress,
+    page: "speaking",
+    ...(review && progress.speakingCompleted
+      ? { reviewDialogueStep: 0 }
+      : {}),
+  };
 }
 
 export function openPlanetForPreview(
@@ -337,17 +420,25 @@ export function openPlanetForPreview(
       step: forestDone(progress) ? 0 : progress.step,
     };
   const lesson = lessons[progress.lessonIndex];
+  const review = reviewForLesson(lesson.id);
   const completed = lesson.steps.map((_, n) => n);
   if (id === "dunes")
     return {
       ...progress,
       completed,
+      reviewSounds: review ? [...completed] : progress.reviewSounds,
+      reviewPlacements: review ? [] : progress.reviewPlacements,
       page: "blending",
     };
   return {
     ...progress,
     completed,
+    reviewSounds: review ? [...completed] : progress.reviewSounds,
     blendCompleted: lesson.blendRounds.map((_, n) => n),
+    reviewPlacements: review
+      ? lesson.blendRounds.map((_, n) => n)
+      : progress.reviewPlacements,
+    reviewDialogueStep: review ? 0 : progress.reviewDialogueStep,
     page: "speaking",
   };
 }
