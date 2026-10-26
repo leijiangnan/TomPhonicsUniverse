@@ -54,6 +54,15 @@ describe("learning fuel and first voyage", () => {
       fuel(parseProgress(JSON.stringify({ ...p, version: 3 })).space),
     ).toBe(270);
   });
+  it("grants 720 for all eight alphabet-launch courses", () => {
+    let p = initialProgress;
+    for (const n of lessons.keys()) {
+      p = done(p);
+      if (n + 1 < lessons.length) p = selectCourse(p, n + 1);
+    }
+    expect(fuel(p.space)).toBe(720);
+    expect(fuel(parseProgress(JSON.stringify(p)).space)).toBe(720);
+  });
   it("blocks insufficient fuel, charges first arrival once and allows free return", () => {
     expect(travel(initialProgress, "station")).toBe(initialProgress);
     const first = travel(done(initialProgress), "station");

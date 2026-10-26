@@ -9,6 +9,7 @@ const module = await initialize();
 const speaker = new module.eSpeakNGWorker();
 speaker.set_voice("en-us");
 speaker.set_rate(90);
+const selected = new Set(process.argv.slice(2));
 for (const [letter, notation, ipa] of [
   ["s", "s:", "s"],
   ["a", "a", "æ"],
@@ -18,7 +19,19 @@ for (const [letter, notation, ipa] of [
   ["n", "n:", "n"],
   ["m", "m:", "m"],
   ["d", "d", "d"],
+  // eSpeak reports its explicit American open-o sample as /ɑː/; the clip
+  // remains an unreviewed prototype for the short-o lesson.
+  ["o", "0", "ɑː"],
+  ["c", "k", "k"],
+  ["k", "k", "k"],
+  ["e", "E", "ɛ"],
+  ["h", "h", "h"],
+  ["r", "R", "r"],
+  ["b", "b", "b"],
+  ["g", "g", "ɡ"],
+  ["u", "V", "ʌ"],
 ]) {
+  if (selected.size && !selected.has(letter)) continue;
   const chunks = [];
   const phonemes = [];
   speaker.synthesize(`[[${notation}]]`, (samples, events) => {

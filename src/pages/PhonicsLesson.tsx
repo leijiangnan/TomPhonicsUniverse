@@ -1,4 +1,5 @@
 import { ArrowRight, Check, ChevronLeft, Volume2 } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { WordArt } from "../components/Art";
 import { lessons } from "../data/lesson";
 import type { Progress } from "../lib/progress";
@@ -18,12 +19,32 @@ export function PhonicsLesson({
   const lesson = lessons[progress.lessonIndex];
   const STEP_COUNT = lesson.steps.length;
   const item = lesson.steps[progress.step];
+  const currentStep = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    const button = currentStep.current;
+    const steps = button?.parentElement;
+    if (!button || !steps) return;
+    const timer = window.setTimeout(() => {
+      const buttonRect = button.getBoundingClientRect();
+      const stepsRect = steps.getBoundingClientRect();
+      steps.scrollTo({
+        left:
+          steps.scrollLeft +
+          buttonRect.left -
+          stepsRect.left -
+          (steps.clientWidth - button.offsetWidth) / 2,
+        behavior: "auto",
+      });
+    }, 50);
+    return () => window.clearTimeout(timer);
+  }, [progress.step]);
   return (
     <main className="lesson-page">
       <div className="activity-heading">
         <div>
           <h1>
-            认识 <span className="heading-letter">{item.grapheme}</span>
+            {lesson.review ? "复习" : "认识"}{" "}
+            <span className="heading-letter">{item.grapheme}</span>
           </h1>
           <p>点字母听发音，点图片听单词。</p>
         </div>
@@ -31,6 +52,7 @@ export function PhonicsLesson({
           {lesson.steps.map((s, i) => (
             <button
               key={s.id}
+              ref={progress.step === i ? currentStep : undefined}
               onClick={() => onStep(i)}
               aria-label={`学习字母 ${s.grapheme}`}
               aria-current={progress.step === i ? "step" : undefined}

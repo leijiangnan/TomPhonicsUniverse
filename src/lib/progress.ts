@@ -53,7 +53,7 @@ function validIndices(value: unknown, count: number): number[] {
             (n): n is number => Number.isInteger(n) && n >= 0 && n < count,
           ),
         ),
-      ].sort()
+      ].sort((a, b) => a - b)
     : [];
 }
 function index(value: unknown, count: number) {
@@ -142,8 +142,8 @@ export function courseUnlocked(p: Progress, n: number): boolean {
 export function currentCourse(p: Progress) {
   return lessons.findIndex((_, n) => !courseDone(p, n));
 }
-export function selectCourse(p: Progress, n: number): Progress {
-  if (!courseUnlocked(p, n)) return p;
+
+function switchCourse(p: Progress, n: number): Progress {
   if (n === p.lessonIndex) return { ...p, page: "map" };
   const records = { ...p.records, [lessons[p.lessonIndex].id]: snapshot(p) };
   delete records[lessons[n].id];
@@ -155,6 +155,16 @@ export function selectCourse(p: Progress, n: number): Progress {
     page: "map",
     records,
   };
+}
+
+export function selectCourse(p: Progress, n: number): Progress {
+  return courseUnlocked(p, n) ? switchCourse(p, n) : p;
+}
+
+export function selectCourseForPreview(p: Progress, n: number): Progress {
+  return Number.isInteger(n) && n >= 0 && n < lessons.length
+    ? switchCourse(p, n)
+    : p;
 }
 function sanitize(
   v: Record<string, unknown>,
@@ -271,7 +281,9 @@ export function parseProgress(raw: string | null): Progress {
 export function completeStep(progress: Progress): Progress {
   return {
     ...progress,
-    completed: [...new Set([...progress.completed, progress.step])].sort(),
+    completed: [...new Set([...progress.completed, progress.step])].sort(
+      (a, b) => a - b,
+    ),
     step: Math.min(
       progress.step + 1,
       lessons[progress.lessonIndex].steps.length - 1,
@@ -290,7 +302,7 @@ export function checkBlend(progress: Progress): Progress {
     blendSolved: true,
     blendCompleted: [
       ...new Set([...progress.blendCompleted, progress.blendRound]),
-    ].sort(),
+    ].sort((a, b) => a - b),
   };
 }
 export function openPlanet(progress: Progress, id: PlanetId): Progress {
@@ -312,4 +324,30 @@ export function openPlanet(progress: Progress, id: PlanetId): Progress {
         }
       : { ...progress, page: "blending" };
   return { ...progress, page: "speaking" };
+}
+
+export function openPlanetForPreview(
+  progress: Progress,
+  id: PlanetId,
+): Progress {
+  if (id === "forest")
+    return {
+      ...progress,
+      page: "lesson",
+      step: forestDone(progress) ? 0 : progress.step,
+    };
+  const lesson = lessons[progress.lessonIndex];
+  const completed = lesson.steps.map((_, n) => n);
+  if (id === "dunes")
+    return {
+      ...progress,
+      completed,
+      page: "blending",
+    };
+  return {
+    ...progress,
+    completed,
+    blendCompleted: lesson.blendRounds.map((_, n) => n),
+    page: "speaking",
+  };
 }

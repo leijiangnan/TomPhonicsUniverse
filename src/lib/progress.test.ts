@@ -1,5 +1,6 @@
 import { reconcileRewards } from "./space";
 import { lessons, courseUnits } from "../data/lesson";
+import { unitOneArtWords } from "../components/UnitOneWordArt";
 const audioFiles = import.meta.glob("../../public/audio/*.mp3", {
   query: "?url",
   import: "default",
@@ -19,8 +20,10 @@ import {
   initialProgress,
   litCount,
   openPlanet,
+  openPlanetForPreview,
   parseProgress,
   planetStatus,
+  selectCourseForPreview,
   type Progress,
 } from "./progress";
 function finishForest(): Progress {
@@ -166,17 +169,17 @@ describe("sequential courses", () => {
   it("requires all three stages before the next course and never opens unimplemented courses", () => {
     expect(selectCourse(initialProgress, 1)).toBe(initialProgress);
     expect(courseUnlocked(finishForest(), 1)).toBe(false);
-    let state = finishCourse(initialProgress);
-    expect(courseUnlocked(state, 1)).toBe(true);
-    expect(courseUnlocked(state, 2)).toBe(false);
-    state = selectCourse(state, 1);
-    expect(state.completed).toEqual([]);
-    state = finishCourse(state);
-    expect(courseUnlocked(state, 2)).toBe(true);
-    state = finishCourse(selectCourse(state, 2));
-    expect(state.completed).toEqual([0, 1]);
+    let state = initialProgress;
+    for (const n of lessons.keys()) {
+      expect(courseUnlocked(state, n)).toBe(true);
+      if (n + 1 < lessons.length)
+        expect(courseUnlocked(state, n + 1)).toBe(false);
+      state = finishCourse(state);
+      expect(courseDone(state, n)).toBe(true);
+      if (n + 1 < lessons.length) state = selectCourse(state, n + 1);
+    }
     expect(currentCourse(state)).toBe(-1);
-    expect(courseUnlocked(state, 3)).toBe(false);
+    expect(courseUnlocked(state, lessons.length)).toBe(false);
     expect(parseProgress(JSON.stringify(state))).toEqual(
       reconcileRewards(state),
     );
@@ -191,6 +194,24 @@ describe("sequential courses", () => {
     expect(resumed.blendDraft).toEqual(["p"]);
     expect(resumed.volume).toBe(0.3);
     expect(currentCourse(resumed)).toBe(1);
+  });
+  it("previews implemented courses and stages without changing formal unlocks", () => {
+    const eighth = selectCourseForPreview(initialProgress, 7);
+    expect(eighth.lessonIndex).toBe(7);
+    expect(eighth.page).toBe("map");
+    expect(courseUnlocked(eighth, 1)).toBe(false);
+    expect(selectCourseForPreview(eighth, 8)).toBe(eighth);
+
+    const dunes = openPlanetForPreview(eighth, "dunes");
+    expect(dunes.page).toBe("blending");
+    expect(forestDone(dunes)).toBe(true);
+    expect(dunesDone(dunes)).toBe(false);
+
+    const crystal = openPlanetForPreview(eighth, "crystal");
+    expect(crystal.page).toBe("speaking");
+    expect(dunesDone(crystal)).toBe(true);
+    expect(crystal.speakingCompleted).toBe(false);
+    expect(courseUnlocked(crystal, 1)).toBe(false);
   });
   it("migrates a completed v2 lesson without granting other courses completion", () => {
     const state = parseProgress(
@@ -211,9 +232,14 @@ describe("sequential courses", () => {
     expect(restored.page).toBe("map");
     expect(courseUnlocked(restored, 1)).toBe(false);
   });
-  it("has 48 planned lessons, three implemented lessons, three examples per sound and complete local audio", () => {
+  it("has 48 planned lessons, eight implemented lessons, three examples per sound and complete local audio", () => {
     expect(courseUnits.flatMap((u) => u.topics)).toHaveLength(48);
-    expect(lessons).toHaveLength(3);
+    expect(lessons).toHaveLength(8);
+    expect(new Set(lessons.map((lesson) => lesson.id)).size).toBe(8);
+    expect(lessons[3].review).toBe(true);
+    expect(lessons[3].steps).toHaveLength(8);
+    expect(lessons[7].review).toBe(true);
+    expect(lessons[7].steps).toHaveLength(17);
     const taught = new Set<string>();
     for (const lesson of lessons) {
       for (const step of lesson.steps) {
@@ -223,10 +249,13 @@ describe("sequential courses", () => {
         for (const word of step.words) {
           expect(word.usageType).toBe("oral_only");
           expect(hasAudioFile(`public${word.audio}`)).toBe(true);
+          if ("ockehrbgu".includes(step.id))
+            expect(unitOneArtWords).toContain(word.word);
         }
       }
       for (const round of lesson.blendRounds) {
         expect(round.usageType).toBe("decodable");
+        expect(round.meaning.trim().length).toBeGreaterThan(0);
         expect(round.requires.every((r) => taught.has(r))).toBe(true);
         expect([...round.word].sort()).toEqual([...round.letters].sort());
         expect(hasAudioFile(`public${round.audio}`)).toBe(true);

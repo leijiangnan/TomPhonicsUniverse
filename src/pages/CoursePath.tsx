@@ -1,4 +1,4 @@
-import { ArrowRight, Check, LockKeyhole, Play } from "lucide-react";
+import { ArrowRight, Check, Eye, LockKeyhole, Play } from "lucide-react";
 import { courseUnits, lessons } from "../data/lesson";
 import {
   courseDone,
@@ -8,9 +8,11 @@ import {
 } from "../lib/progress";
 export function CoursePath({
   progress,
+  previewEnabled,
   onSelect,
 }: {
   progress: Progress;
+  previewEnabled: boolean;
   onSelect: (n: number) => void;
 }) {
   const current = currentCourse(progress);
@@ -20,12 +22,14 @@ export function CoursePath({
         <div>
           <h1>我的学习路径</h1>
           <p>
-            {current < 0
-              ? "前 3 课已完成，后续课程准备中。"
+            {previewEnabled
+              ? "家长预览已开启 · 可直接查看已开发的第 1–8 课"
+              : current < 0
+              ? "字母启航 8 课已完成，后续课程准备中。"
               : `当前学到第 ${current + 1} 课 · 学完一课，解锁下一课`}
           </p>
         </div>
-        {current >= 0 && (
+        {!previewEnabled && current >= 0 && (
           <button className="button primary" onClick={() => onSelect(current)}>
             继续学习 <ArrowRight size={20} />
           </button>
@@ -49,13 +53,15 @@ export function CoursePath({
               const ready = n < lessons.length;
               const done = courseDone(progress, n);
               const unlocked = courseUnlocked(progress, n);
+              const previewable = previewEnabled && ready && !unlocked;
+              const accessible = unlocked || previewable;
               return (
                 <li key={n}>
                   <button
-                    className={`course-node ${done ? "done" : unlocked ? "available" : "unavailable"}`}
-                    disabled={!unlocked}
+                    className={`course-node ${done ? "done" : accessible ? "available" : "unavailable"}`}
+                    disabled={!accessible}
                     aria-current={n === current ? "step" : undefined}
-                    aria-label={`第 ${n + 1} 课，${topic}，${done ? "已完成，可复习" : unlocked ? "继续学习" : ready ? `先完成第 ${n} 课` : "准备中"}`}
+                    aria-label={`第 ${n + 1} 课，${topic}，${done ? "已完成，可复习" : unlocked ? "继续学习" : previewable ? "家长预览" : ready ? `先完成第 ${n} 课` : "准备中"}`}
                     onClick={() => onSelect(n)}
                   >
                     <span className="course-number">
@@ -70,6 +76,11 @@ export function CoursePath({
                         <>
                           <Play size={16} />
                           学到这里
+                        </>
+                      ) : previewable ? (
+                        <>
+                          <Eye size={16} />
+                          家长预览
                         </>
                       ) : ready ? (
                         <>

@@ -49,8 +49,8 @@ const firstLesson = {
 } as const;
 
 const firstRounds = [
-  { word: "at", letters: ["t", "a"], audio: "/audio/at.mp3" },
-  { word: "sat", letters: ["t", "s", "a"], audio: "/audio/sat.mp3" },
+  { word: "at", meaning: "在……", letters: ["t", "a"], audio: "/audio/at.mp3" },
+  { word: "sat", meaning: "坐（sit 的过去式）", letters: ["t", "s", "a"], audio: "/audio/sat.mp3" },
 ] as const;
 const firstSpeaking = {
   word: "apple",
@@ -83,9 +83,12 @@ export type SoundStep = {
 export type Lesson = {
   id: string;
   title: string;
+  focus: string;
+  review?: boolean;
   steps: readonly SoundStep[];
   blendRounds: readonly {
     word: string;
+    meaning: string;
     letters: readonly string[];
     audio: string;
     usageType: "decodable";
@@ -122,9 +125,10 @@ function sound(
     })),
   };
 }
-function rounds(words: string[]) {
-  return words.map((word) => ({
+function rounds(words: [string, string][]) {
+  return words.map(([word, meaning]) => ({
     word,
+    meaning,
     letters: [...word].reverse(),
     audio: `/audio/${word}.mp3`,
     usageType: "decodable" as const,
@@ -141,16 +145,207 @@ function speaking(word: string) {
     usageType: "oral_only" as const,
   };
 }
+function speakingPrompt(
+  word: string,
+  question: string,
+  answer: string,
+  questionAudio: string,
+  answerAudio: string,
+) {
+  return {
+    word,
+    question,
+    answer,
+    questionAudio,
+    answerAudio,
+    usageType: "oral_only" as const,
+  };
+}
+
+const firstSteps: readonly SoundStep[] = firstLesson.steps.map((step) => ({
+  ...step,
+  words: step.words.map((word) => ({
+    ...word,
+    usageType: "oral_only" as const,
+  })),
+}));
+const secondSteps = [
+  sound(
+    "p",
+    "/p/",
+    "mint",
+    [
+      ["pig", "小猪"],
+      ["pen", "钢笔"],
+      ["pan", "平底锅"],
+    ],
+    "双唇闭合后轻轻放开，短促发 /p/，不要读成字母名称或加元音。",
+  ),
+  sound(
+    "i",
+    "/ɪ/",
+    "peach",
+    [
+      ["ink", "墨水"],
+      ["insect", "昆虫"],
+      ["igloo", "冰屋"],
+    ],
+    "示范 ink 开头的短 /ɪ/，不是字母名称 /aɪ/。三个例词均以短 /ɪ/ 开头。",
+  ),
+  sound(
+    "n",
+    "/n/",
+    "lavender",
+    [
+      ["net", "网"],
+      ["nest", "鸟巢"],
+      ["nut", "坚果"],
+    ],
+    "舌尖抵上齿龈，让声音从鼻腔出来，发 /n/，不要附加元音。",
+  ),
+] as const;
+const thirdSteps = [
+  sound(
+    "m",
+    "/m/",
+    "mint",
+    [
+      ["map", "地图"],
+      ["moon", "月亮"],
+      ["mouse", "老鼠"],
+    ],
+    "合上双唇，轻轻哼出 /m/，感受鼻腔振动，不要读成字母名称。",
+  ),
+  sound(
+    "d",
+    "/d/",
+    "peach",
+    [
+      ["dog", "小狗"],
+      ["duck", "鸭子"],
+      ["dinosaur", "恐龙"],
+    ],
+    "舌尖轻碰上齿龈后放开，声带振动，短促发 /d/，避免附加元音。",
+  ),
+] as const;
+const fifthSteps = [
+  sound(
+    "o",
+    "/ɑ/",
+    "mint",
+    [
+      ["octopus", "章鱼"],
+      ["ox", "公牛"],
+      ["olive", "橄榄"],
+    ],
+    "示范 octopus 开头的美式短 o /ɑ/，嘴巴自然张开；不要读成字母名称 /oʊ/。",
+  ),
+  sound(
+    "c",
+    "/k/",
+    "peach",
+    [
+      ["cat", "小猫"],
+      ["cup", "杯子"],
+      ["car", "汽车"],
+    ],
+    "这里学习 c 在 cat 中的 /k/ 音。舌后部轻触软腭后快速放开，不要附加元音。",
+  ),
+  sound(
+    "k",
+    "/k/",
+    "lavender",
+    [
+      ["key", "钥匙"],
+      ["kite", "风筝"],
+      ["king", "国王"],
+    ],
+    "k 也可以表示 /k/。发音短促，不要读成字母名称 /keɪ/，也不要在后面加元音。",
+  ),
+] as const;
+const sixthSteps = [
+  sound(
+    "e",
+    "/ɛ/",
+    "mint",
+    [
+      ["egg", "鸡蛋"],
+      ["elephant", "大象"],
+      ["elbow", "手肘"],
+    ],
+    "示范 egg 开头的短 /ɛ/，嘴角自然放松；不要读成字母名称 /iː/。",
+  ),
+  sound(
+    "h",
+    "/h/",
+    "peach",
+    [
+      ["hat", "帽子"],
+      ["hand", "手"],
+      ["horse", "马"],
+    ],
+    "像轻轻哈气一样发 /h/，只送出气流，不要读成字母名称或加元音。",
+  ),
+  sound(
+    "r",
+    "/r/",
+    "lavender",
+    [
+      ["rabbit", "兔子"],
+      ["robot", "机器人"],
+      ["rain", "雨"],
+    ],
+    "舌尖抬起但不要碰到上颚，嘴唇略收圆，发美式 /r/，不要读成字母名称。",
+  ),
+] as const;
+const seventhSteps = [
+  sound(
+    "b",
+    "/b/",
+    "mint",
+    [
+      ["ball", "球"],
+      ["bed", "床"],
+      ["bus", "公交车"],
+    ],
+    "双唇闭合后短促放开，同时让声带振动，发 /b/，不要附加元音。",
+  ),
+  sound(
+    "g",
+    "/ɡ/",
+    "peach",
+    [
+      ["goat", "山羊"],
+      ["gift", "礼物"],
+      ["gum", "口香糖"],
+    ],
+    "这里学习 g 在 goat 中的 /ɡ/ 音。舌后部轻触软腭后放开，声带振动。",
+  ),
+  sound(
+    "u",
+    "/ʌ/",
+    "lavender",
+    [
+      ["umbrella", "雨伞"],
+      ["up", "向上"],
+      ["uncle", "叔叔"],
+    ],
+    "示范 umbrella 开头的短 /ʌ/，嘴巴放松、声音短促；不要读成字母名称 /juː/。",
+  ),
+] as const;
+const firstEightSteps = [...firstSteps, ...secondSteps, ...thirdSteps];
+const firstUnitSteps = [
+  ...firstEightSteps,
+  ...fifthSteps,
+  ...sixthSteps,
+  ...seventhSteps,
+];
+
 export const lessons: readonly Lesson[] = [
   {
     ...firstLesson,
-    steps: firstLesson.steps.map((step) => ({
-      ...step,
-      words: step.words.map((word) => ({
-        ...word,
-        usageType: "oral_only" as const,
-      })),
-    })),
+    focus: "s · a · t",
+    steps: firstSteps,
     blendRounds: firstRounds.map((round) => ({
       ...round,
       usageType: "decodable" as const,
@@ -161,73 +356,90 @@ export const lessons: readonly Lesson[] = [
   {
     id: "mission-002",
     title: "新的字母能源",
-    steps: [
-      sound(
-        "p",
-        "/p/",
-        "mint",
-        [
-          ["pig", "小猪"],
-          ["pen", "钢笔"],
-          ["pan", "平底锅"],
-        ],
-        "双唇闭合后轻轻放开，短促发 /p/，不要读成字母名称或加元音。",
-      ),
-      sound(
-        "i",
-        "/ɪ/",
-        "peach",
-        [
-          ["ink", "墨水"],
-          ["insect", "昆虫"],
-          ["igloo", "冰屋"],
-        ],
-        "示范 ink 开头的短 /ɪ/，不是字母名称 /aɪ/。三个例词均以短 /ɪ/ 开头。",
-      ),
-      sound(
-        "n",
-        "/n/",
-        "lavender",
-        [
-          ["net", "网"],
-          ["nest", "鸟巢"],
-          ["nut", "坚果"],
-        ],
-        "舌尖抵上齿龈，让声音从鼻腔出来，发 /n/，不要附加元音。",
-      ),
-    ],
-    blendRounds: rounds(["pin", "sit", "tap"]),
+    focus: "p · i · n",
+    steps: secondSteps,
+    blendRounds: rounds([["pin", "大头针"], ["sit", "坐"], ["tap", "轻敲"]]),
     speakingTask: speaking("pig"),
   },
   {
     id: "mission-003",
     title: "找到探险地图",
-    steps: [
-      sound(
-        "m",
-        "/m/",
-        "mint",
-        [
-          ["map", "地图"],
-          ["moon", "月亮"],
-          ["mouse", "老鼠"],
-        ],
-        "合上双唇，轻轻哼出 /m/，感受鼻腔振动，不要读成字母名称。",
-      ),
-      sound(
-        "d",
-        "/d/",
-        "peach",
-        [
-          ["dog", "小狗"],
-          ["duck", "鸭子"],
-          ["dinosaur", "恐龙"],
-        ],
-        "舌尖轻碰上齿龈后放开，声带振动，短促发 /d/，避免附加元音。",
-      ),
-    ],
-    blendRounds: rounds(["map", "mad", "dip"]),
+    focus: "m · d",
+    steps: thirdSteps,
+    blendRounds: rounds([["map", "地图"], ["mad", "生气的"], ["dip", "蘸一下"]]),
     speakingTask: speaking("map"),
+  },
+  {
+    id: "mission-004",
+    title: "声音寻宝",
+    focus: "复习前 8 个字母音",
+    review: true,
+    steps: firstEightSteps,
+    blendRounds: rounds([["sat", "坐（sit 的过去式）"], ["pin", "大头针"], ["map", "地图"]]),
+    speakingTask: speakingPrompt(
+      "map",
+      "What do you see?",
+      "I see a map.",
+      "/audio/what-do-you-see.mp3",
+      "/audio/i-see-a-map.mp3",
+    ),
+  },
+  {
+    id: "mission-005",
+    title: "收集字母矿石",
+    focus: "o · c · k",
+    steps: fifthSteps,
+    blendRounds: rounds([["cot", "小床"], ["cop", "警察"], ["kid", "孩子"]]),
+    speakingTask: speakingPrompt(
+      "cat",
+      "What do you see?",
+      "I see a cat.",
+      "/audio/what-do-you-see.mp3",
+      "/audio/i-see-a-cat.mp3",
+    ),
+  },
+  {
+    id: "mission-006",
+    title: "给机器人送物资",
+    focus: "e · h · r",
+    steps: sixthSteps,
+    blendRounds: rounds([["hen", "母鸡"], ["red", "红色的"], ["pet", "宠物"]]),
+    speakingTask: speakingPrompt(
+      "hen",
+      "What do you like?",
+      "I like the hen.",
+      "/audio/what-do-you-like.mp3",
+      "/audio/i-like-the-hen.mp3",
+    ),
+  },
+  {
+    id: "mission-007",
+    title: "合成起飞工具",
+    focus: "b · g · u",
+    steps: seventhSteps,
+    blendRounds: rounds([["bug", "小虫"], ["big", "大的"], ["mug", "马克杯"]]),
+    speakingTask: speakingPrompt(
+      "bug",
+      "Is it big or small?",
+      "It's a big bug.",
+      "/audio/is-it-big-or-small.mp3",
+      "/audio/its-a-big-bug.mp3",
+    ),
+  },
+  {
+    id: "mission-008",
+    title: "飞船起飞挑战",
+    focus: "字母启航总复习",
+    review: true,
+    steps: firstUnitSteps,
+    blendRounds: rounds([["cat", "小猫"], ["dog", "小狗"], ["sun", "太阳"], ["red", "红色的"]]),
+    speakingTask: speakingPrompt(
+      "bug",
+      "What do you see?",
+      "I see a red bug.",
+      "/audio/what-do-you-see.mp3",
+      "/audio/i-see-a-red-bug.mp3",
+    ),
   },
 ];
 export const courseUnits = [

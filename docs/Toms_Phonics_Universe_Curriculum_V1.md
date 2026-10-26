@@ -42,17 +42,22 @@
 
 ### 2.1 当前原型与课次对应（2026-10-26）
 
-课程总览展示全部 48 课的路径，实际可学习前 3 课。每课包含「认声音 → 拼单词 → 开口说」三个阶段；完成整课才能解锁下一课。第 4–48 课显示准备中，后 32 课仍按阶段方向规划，尚未确定逐课素材。
+课程总览展示全部 48 课的路径，实际可学习「字母启航」第 1–8 课。每课包含「认声音 → 拼单词 → 开口说」三个阶段；完成整课才能解锁下一课。第 9–48 课显示准备中，后 32 课仍按阶段方向规划，尚未确定逐课素材。
 
 | 课次 | 新音 | 拼读题（decodable） | 当前口语任务（oral_only） |
 |---|---|---|---|
 | 1 | s / a / t | at、sat | 宇宙商店：Hello / I want… / Thank you / Bye |
 | 2 | p / i / n | pin、sit、tap | What is it? → It's a pig. |
 | 3 | m / d | map、mad、dip | What is it? → It's a map. |
+| 4 | 复习 s / a / t / p / i / n / m / d | sat、pin、map | What do you see? → I see a map. |
+| 5 | o / c / k | cot、cop、kid | What do you see? → I see a cat. |
+| 6 | e / h / r | hen、red、pet | What do you like? → I like the hen. |
+| 7 | b / g / u | bug、big、mug | Is it big or small? → It's a big bug. |
+| 8 | 复习全部 17 个音 | cat、dog、sun、red | What do you see? → I see a red bug. |
 
-首课按用户要求升级为宇宙商店情景对话，支持苹果与宝石分支；`I want…` 作为有完整示范的听说表达提前体验，不作为独立拼读目标。下表的 `Hello! I'm Tom.` 仍为原课程草案示例。第 2 课将物品提问落到小猪图片，第 3 课练习地图回答；三课均不要求孩子独立解码口语句子。拼读题采用听音点字母，第三课的看图拼词游戏建议尚未实现。
+首课按用户要求升级为宇宙商店情景对话，支持苹果与宝石分支；`I want…` 作为有完整示范的听说表达提前体验，不作为独立拼读目标。下表的 `Hello! I'm Tom.` 仍为原课程草案示例。第 2–8 课采用配图单句任务，均不要求孩子独立解码口语句子。拼读题采用听音点字母；听音寻宝与飞船起飞挑战继续复用当前三阶段模板，独立游戏模板尚未实现。
 
-每个音有三个点读图片词：s（sun/snake/sock）、a（apple/ant/alligator）、t（top/tiger/turtle）、p（pig/pen/pan）、i（ink/insect/igloo）、n（net/nest/nut）、m（map/moon/mouse）、d（dog/duck/dinosaur）。这些图片词均用于听说拓展；例如 moon 的长元音并未作为本课独立拼读规则教授。短 a、短 i 分别使用 /æ/、/ɪ/，音频仍为待人工校对的合成素材。
+17 个已教音各有三个点读图片词。新增内容为 o（octopus/ox/olive）、c（cat/cup/car）、k（key/kite/king）、e（egg/elephant/elbow）、h（hat/hand/horse）、r（rabbit/robot/rain）、b（ball/bed/bus）、g（goat/gift/gum）、u（umbrella/up/uncle）。这些图片词均用于听说拓展；例如 moon、key、kite、rain 等包含尚未教授的元音规则，不作为独立拼读题。全部音频仍为待人工校对的合成素材。
 
 ## 3. 前 16 周详细安排
 

@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
+  BookOpen,
   Check,
   House,
   Rocket,
@@ -25,23 +26,52 @@ import { SpeakingChallenge } from "./pages/SpeakingChallenge";
 import { lessons, planets, type PlanetId } from "./data/lesson";
 import {
   selectCourse,
+  selectCourseForPreview,
   currentCourse,
   checkBlend,
   completeStep,
   dunesDone,
   forestDone,
   openPlanet,
+  openPlanetForPreview,
   planetStatus,
+  type Progress,
 } from "./lib/progress";
 import { playAudio, stopAudio } from "./lib/audio";
 type Modal = "settings" | "locked" | "celebration" | null;
 export default function App() {
-  const { progress, setProgress, saveError } = useProgress();
+  const {
+    progress: savedProgress,
+    setProgress: saveProgress,
+    saveError,
+  } = useProgress();
+  const [previewEnabled, setPreviewEnabled] = useState(false);
+  const [previewProgress, setPreviewProgress] = useState<Progress | null>(null);
+  const progress =
+    previewEnabled && previewProgress ? previewProgress : savedProgress;
+  const setProgress = useCallback(
+    (
+      change: Progress | ((current: Progress) => Progress),
+      durable = false,
+    ): Promise<boolean> => {
+      if (!previewEnabled) return saveProgress(change, durable);
+      setPreviewProgress((current) => {
+        const base = current ?? savedProgress;
+        return typeof change === "function" ? change(base) : change;
+      });
+      return Promise.resolve(true);
+    },
+    [previewEnabled, saveProgress, savedProgress],
+  );
   const lesson = lessons[progress.lessonIndex];
   const blendRounds = lesson.blendRounds;
   const STEP_COUNT = lesson.steps.length;
   const goCourse = (n: number) => {
-    setProgress((p) => selectCourse(p, n));
+    setProgress((p) =>
+      previewEnabled
+        ? selectCourseForPreview(p, n)
+        : selectCourse(p, n),
+    );
     setModal(null);
   };
   const [modal, setModal] = useState<Modal>(null);
@@ -50,6 +80,20 @@ export default function App() {
   const [playingSrc, setPlayingSrc] = useState<string | null>(null);
   const [feedback, setFeedback] = useState("");
   const audioRequest = useRef(0);
+  const togglePreview = (enabled: boolean) => {
+    audioRequest.current++;
+    stopAudio();
+    setPlayingSrc(null);
+    setFeedback("");
+    setNotice("");
+    if (enabled) {
+      setPreviewProgress(savedProgress);
+      setPreviewEnabled(true);
+    } else {
+      setPreviewEnabled(false);
+      setPreviewProgress(null);
+    }
+  };
   useEffect(() => {
     audioRequest.current++;
     stopAudio();
@@ -94,13 +138,15 @@ export default function App() {
   );
   const back = () => setProgress((p) => ({ ...p, page: "map" }));
   const enter = (id: PlanetId) => {
-    if (planetStatus(progress, id) === "locked") {
+    if (!previewEnabled && planetStatus(progress, id) === "locked") {
       setSelectedPlanet(id);
       setModal("locked");
       return;
     }
     setModal(null);
-    setProgress((p) => openPlanet(p, id));
+    setProgress((p) =>
+      previewEnabled ? openPlanetForPreview(p, id) : openPlanet(p, id),
+    );
   };
   const celebrate = (id: PlanetId) => {
     setSelectedPlanet(id);
@@ -215,7 +261,7 @@ export default function App() {
             onClick={() => setModal("settings")}
           >
             <Settings2 size={22} />
-            <span>家长</span>
+            <span>{previewEnabled ? "预览中" : "家长"}</span>
           </button>
         </div>
       </header>
@@ -232,10 +278,15 @@ export default function App() {
           }
         />
       ) : progress.page === "courses" ? (
-        <CoursePath progress={progress} onSelect={goCourse} />
+        <CoursePath
+          progress={progress}
+          previewEnabled={previewEnabled}
+          onSelect={goCourse}
+        />
       ) : progress.page === "map" ? (
         <GalaxyMap
           progress={progress}
+          previewEnabled={previewEnabled}
           onEnter={enter}
           onSpace={() => setProgress((p) => ({ ...p, page: "space" }))}
           onCourses={() => setProgress((p) => ({ ...p, page: "courses" }))}
@@ -332,9 +383,45 @@ export default function App() {
               )}
               {progress.page === "speaking" && (
                 <div className="modal-note">
-                  第一课是宇宙商店：先听店主的话，再尝试开口，家长确认后推进。购买前先确认，再选择物品。可以切换提示或用「家长帮我说」一起完成，不扣奖励。完成结尾后可点亮星球；重玩不重复累加同一种物品。第二、三课仍是单句问答。系统不会判断发音是否准确。
+                  第一课是宇宙商店多轮对话；第 2–8
+                  课是配图口语任务。先听问题、观察图片并尝试开口，再由家长确认。系统不会录音，也不会判断发音是否准确。
                 </div>
               )}
+              <div
+                className={`parent-preview ${previewEnabled ? "active" : ""}`}
+              >
+                <div>
+                  <b>家长预览模式</b>
+                  <p>
+                    直接查看第 1–8
+                    课和课内三颗星球。预览操作只在当前页面生效，不保存学习完成状态，也不发放燃料。
+                  </p>
+                </div>
+                <label className="toggle-control">
+                  <input
+                    type="checkbox"
+                    aria-label="家长预览模式"
+                    checked={previewEnabled}
+                    onChange={(event) => togglePreview(event.target.checked)}
+                  />
+                  <span className="toggle-track" aria-hidden="true">
+                    <span />
+                  </span>
+                  <strong>{previewEnabled ? "已开启" : "已关闭"}</strong>
+                </label>
+                {previewEnabled && (
+                  <button
+                    className="button secondary full"
+                    onClick={() => {
+                      setModal(null);
+                      setProgress((p) => ({ ...p, page: "courses" }));
+                    }}
+                  >
+                    <BookOpen size={20} />
+                    查看可预览课程
+                  </button>
+                )}
+              </div>
               <div className="modal-note">
                 <b>探索燃料：{fuel(progress.space)}</b>
                 <p>
@@ -397,21 +484,23 @@ export default function App() {
               <p className="celebration-message">
                 {nextPlanet
                   ? `下一站：${nextPlanet.name}`
-                  : `第 ${progress.lessonIndex + 1} 课完成啦！${progress.lessonIndex + 1 < lessons.length ? "下一课已解锁。" : "前 3 课全部完成！"}`}
+                  : `第 ${progress.lessonIndex + 1} 课完成啦！${progress.lessonIndex + 1 < lessons.length ? "下一课已解锁。" : "字母启航 8 课全部完成！"}`}
               </p>
               <p className="celebration-message">
                 探索燃料：{fuel(progress.space)}
               </p>
-              <button
-                className="button secondary full"
-                onClick={() => {
-                  setModal(null);
-                  setProgress((p) => ({ ...p, page: "space" }));
-                }}
-              >
-                <Rocket size={21} />
-                驾驶飞船
-              </button>
+              {!previewEnabled && (
+                <button
+                  className="button secondary full"
+                  onClick={() => {
+                    setModal(null);
+                    setProgress((p) => ({ ...p, page: "space" }));
+                  }}
+                >
+                  <Rocket size={21} />
+                  驾驶飞船
+                </button>
+              )}
               {!nextPlanet && progress.lessonIndex + 1 < lessons.length && (
                 <button
                   className="button primary full"

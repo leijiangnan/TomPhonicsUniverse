@@ -1,4 +1,5 @@
 import { NewWordArt, newArtWords } from "./NewWordArt";
+import { UnitOneWordArt, unitOneArtWords } from "./UnitOneWordArt";
 import { useId } from "react";
 export function Cube({
   x,
@@ -176,6 +177,7 @@ export function Robot({ small = false }: { small?: boolean }) {
   );
 }
 export function WordArt({ word }: { word: string }) {
+  if (unitOneArtWords.includes(word)) return <UnitOneWordArt word={word} />;
   if (newArtWords.includes(word)) return <NewWordArt word={word} />;
   return (
     <svg
