@@ -1,5 +1,6 @@
 import { Check, Volume2, RotateCcw, ArrowRight, HandHeart } from "lucide-react";
 import { Robot, WordArt } from "../components/Art";
+import { TemporaryRecording } from "../components/TemporaryRecording";
 import {
   clip,
   shopItems,
@@ -167,6 +168,7 @@ export function DialogueAdventure({
                 </button>
               )}
             </div>
+            {!state.confirmed && <TemporaryRecording key={state.node} onPlay={onPlay} />}
           </div>
         </section>
       )}

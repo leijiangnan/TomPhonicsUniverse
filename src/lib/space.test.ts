@@ -56,12 +56,25 @@ describe("learning fuel and first voyage", () => {
   });
   it("grants 720 for all eight alphabet-launch courses", () => {
     let p = initialProgress;
-    for (const n of lessons.keys()) {
+    for (const n of lessons.slice(0, 8).keys()) {
       p = done(p);
-      if (n + 1 < lessons.length) p = selectCourse(p, n + 1);
+      if (n + 1 < 8) p = selectCourse(p, n + 1);
     }
     expect(fuel(p.space)).toBe(720);
     expect(fuel(parseProgress(JSON.stringify(p)).space)).toBe(720);
+    const ninth = done(selectCourse(p, 8));
+    expect(fuel(ninth.space)).toBe(810);
+    expect(reconcileRewards(ninth)).toBe(ninth);
+  });
+  it("awards each of the sixteen implemented lessons once", () => {
+    let p = initialProgress;
+    for (let n = 0; n < lessons.length; n++) {
+      p = done(p);
+      if (n + 1 < lessons.length) p = selectCourse(p, n + 1);
+    }
+    expect(fuel(p.space)).toBe(1440);
+    expect(fuel(parseProgress(JSON.stringify(p)).space)).toBe(1440);
+    expect(reconcileRewards(p)).toBe(p);
   });
   it("blocks insufficient fuel, charges first arrival once and allows free return", () => {
     expect(travel(initialProgress, "station")).toBe(initialProgress);

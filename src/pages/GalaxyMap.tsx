@@ -74,7 +74,7 @@ export function GalaxyMap({
           <p>
             {count === planets.length
               ? currentCourse(progress) < 0
-                ? "字母启航 8 课已完成，随时可以复习。"
+                ? "已开发课程全部完成，随时可以复习。"
                 : "本课已完成，可以复习或继续下一课。"
               : "完成一站，就点亮一颗。"}
           </p>

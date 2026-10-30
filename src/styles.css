@@ -2188,6 +2188,16 @@ input[type="range"] {
   margin: 14px 0;
   font-size: 19px;
 }
+.temporary-recording { text-align: center; }
+.recording-buttons { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
+.recording-buttons button {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 48px; padding: 9px 18px; border: 2px solid #73966d;
+  border-radius: 14px; color: #294637; background: #e2efd8; font-size: 18px; font-weight: 700;
+}
+.recording-buttons button:disabled { opacity: .65; }
+.temporary-recording p { margin: 5px 0 0; font-size: 15px; }
+.temporary-recording p:empty { display: none; }
 .shop-controls {
   margin-top: 18px;
 }

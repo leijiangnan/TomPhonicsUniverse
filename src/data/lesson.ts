@@ -1,3 +1,5 @@
+const letterAudio = (id: string) => `/audio/letters/letter-${id}.mp3`;
+
 const firstLesson = {
   id: "mission-001",
   title: "失落的能源方块",
@@ -8,7 +10,7 @@ const firstLesson = {
       grapheme: "s",
       ipa: "/s/",
       theme: "mint",
-      audio: "/audio/phoneme-s.mp3",
+      audio: letterAudio("s"),
       parentTip:
         "一起模仿小蛇的嘶嘶声。只发 /s/，不要读成字母名称，也不要在后面加「呃」。",
       words: [
@@ -22,7 +24,7 @@ const firstLesson = {
       grapheme: "a",
       ipa: "/æ/",
       theme: "peach",
-      audio: "/audio/phoneme-a.mp3",
+      audio: letterAudio("a"),
       parentTip:
         "先示范 apple 开头的短元音，再请孩子模仿。这里学习的是短 /æ/，不是字母名称 /eɪ/。三个例词都使用美式英语开头的短 /æ/。",
       words: [
@@ -36,7 +38,7 @@ const firstLesson = {
       grapheme: "t",
       ipa: "/t/",
       theme: "lavender",
-      audio: "/audio/phoneme-t.mp3",
+      audio: letterAudio("t"),
       parentTip:
         "舌尖轻碰上齿龈，然后短促地放开。发一个轻而短的 /t/，避免在后面加元音，也不要读成字母名称 /tiː/。",
       words: [
@@ -85,6 +87,7 @@ export type Lesson = {
   title: string;
   focus: string;
   review?: boolean;
+  learningNote?: string;
   steps: readonly SoundStep[];
   blendRounds: readonly {
     word: string;
@@ -116,7 +119,7 @@ function sound(
     ipa,
     theme,
     parentTip,
-    audio: `/audio/phoneme-${id}.mp3`,
+    audio: letterAudio(id),
     words: words.map(([word, meaning]) => ({
       word,
       meaning,
@@ -126,14 +129,14 @@ function sound(
   };
 }
 function rounds(words: [string, string][]) {
-  return words.map(([word, meaning]) => ({
-    word,
-    meaning,
-    letters: [...word].reverse(),
-    audio: `/audio/${word}.mp3`,
-    usageType: "decodable" as const,
-    requires: [...new Set(word)],
-  }));
+  return words.map(([word, meaning]) => {
+    const graphemes = word.match(/qu|./g) ?? [];
+    return {
+      word, meaning, letters: [...graphemes].reverse(),
+      audio: `/audio/${word}.mp3`, usageType: "decodable" as const,
+      requires: [...new Set(graphemes)],
+    };
+  });
 }
 function speaking(word: string) {
   return {
@@ -333,6 +336,25 @@ const seventhSteps = [
     "示范 umbrella 开头的短 /ʌ/，嘴巴放松、声音短促；不要读成字母名称 /juː/。",
   ),
 ] as const;
+const ninthSteps = [
+  sound("f", "/f/", "mint", [["fan", "风扇"], ["fish", "鱼"], ["fox", "狐狸"]],
+    "上齿轻触下唇，让气流摩擦发出 /f/，不要读成字母名称或附加元音。"),
+  sound("l", "/l/", "peach", [["leaf", "叶子"], ["leg", "腿"], ["lion", "狮子"]],
+    "舌尖轻触上齿龈，声音从舌头两侧流出，发 /l/，不要读成字母名称。"),
+] as const;
+const tenthSteps = [
+  sound("w", "/w/", "mint", [["web", "蜘蛛网"], ["wind", "风"], ["window", "窗户"]], "嘴唇收圆后滑向元音，发 /w/，不要读成字母名称。"),
+  sound("j", "/dʒ/", "peach", [["jam", "果酱"], ["jet", "喷气飞机"], ["jug", "水壶"]], "舌头靠近上齿龈，短促发 /dʒ/，不要读成字母名称。"),
+] as const;
+const eleventhSteps = [
+  sound("v", "/v/", "mint", [["van", "厢式货车"], ["vet", "兽医"], ["vest", "背心"]], "上齿轻触下唇，让声带振动发 /v/。"),
+  sound("z", "/z/", "peach", [["zip", "拉链"], ["zebra", "斑马"], ["zoo", "动物园"]], "像小蜜蜂一样发 /z/，感受声带振动，不要读成字母名称。"),
+] as const;
+const twelfthSteps = [
+  sound("x", "/ks/", "mint", [["fox", "狐狸"], ["box", "盒子"], ["six", "六"]], "这里 x 在词尾代表连续的 /k/ 和 /s/ 两个音。例词中的 x 都在末尾。"),
+  sound("y", "/j/", "peach", [["yak", "牦牛"], ["yellow", "黄色"], ["yo-yo", "悠悠球"]], "这里学习 y 在词首的 /j/ 音；y 在其他位置可能有不同读音。"),
+  { ...sound("qu", "/kw/", "lavender", [["queen", "女王"], ["quilt", "被子"], ["quiz", "小测验"]], "qu 在这些词中表示连续的 /k/ 和 /w/ 两个音；两个字母合在一个字素方块里。"), audio: "/audio/phoneme-qu.mp3" },
+] as const;
 const firstEightSteps = [...firstSteps, ...secondSteps, ...thirdSteps];
 const firstUnitSteps = [
   ...firstEightSteps,
@@ -455,6 +477,43 @@ export const lessons: readonly Lesson[] = [
       "/audio/i-see-a-red-bug.mp3",
     ),
   },
+  {
+    id: "mission-009",
+    title: "寻找字母矿石",
+    focus: "f · l",
+    steps: ninthSteps,
+    blendRounds: rounds([["fan", "风扇"], ["lip", "嘴唇"], ["fit", "健康的"]]),
+    speakingTask: speaking("fan"),
+  },
+  { id: "mission-010", title: "领取矿场物资", focus: "w · j", steps: tenthSteps,
+    blendRounds: rounds([["win", "获胜"], ["wet", "湿的"], ["jam", "果酱"]]),
+    speakingTask: speakingPrompt("fan", "What do you want?", "I want a fan.", "/audio/what-do-you-want.mp3", "/audio/i-want-a-fan.mp3") },
+  { id: "mission-011", title: "矿场物资交易", focus: "v · z", steps: eleventhSteps,
+    blendRounds: rounds([["van", "厢式货车"], ["vet", "兽医"], ["zip", "拉链"]]),
+    speakingTask: speakingPrompt("van", "What do you want?", "I want a van.", "/audio/what-do-you-want.mp3", "/audio/i-want-a-van.mp3") },
+  { id: "mission-012", title: "组合声音", focus: "x · y · qu", steps: twelfthSteps,
+    blendRounds: rounds([["box", "盒子"], ["yes", "是"], ["quit", "停止"]]),
+    speakingTask: speakingPrompt("fan", "Can I have a fan?", "Here you are.", "/audio/can-i-have-a-fan.mp3", "/audio/here-you-are.mp3") },
+  { id: "mission-013", title: "短元音声音对比", focus: "短元音 a / i", review: true,
+    learningNote: "听一听短 a 和短 i，再比较 pan / pin、sat / sit。",
+    steps: [firstSteps[1], secondSteps[1]],
+    blendRounds: rounds([["pan", "平底锅"], ["pin", "大头针"], ["sat", "坐过"], ["sit", "坐"]]),
+    speakingTask: speakingPrompt("fan", "What do you have?", "I have a fan.", "/audio/what-do-you-have.mp3", "/audio/i-have-a-fan.mp3") },
+  { id: "mission-014", title: "更多短元音", focus: "短元音 o / u / e", review: true,
+    learningNote: "听一听短 o、u、e，再比较 cot / cut 和 pen。",
+    steps: [fifthSteps[0], seventhSteps[2], sixthSteps[0]],
+    blendRounds: rounds([["cot", "小床"], ["cut", "切"], ["pen", "钢笔"]]),
+    speakingTask: speakingPrompt("pen", "What do you have?", "I have a pen.", "/audio/what-do-you-have.mp3", "/audio/i-have-a-pen.mp3") },
+  { id: "mission-015", title: "相邻辅音合成", focus: "辅音连缀入门", review: true,
+    learningNote: "两个辅音挨在一起时，每个音都要听见：s + t、f + r、n + d。",
+    steps: [firstSteps[0], firstSteps[2], ninthSteps[0], sixthSteps[2], secondSteps[2], thirdSteps[1]],
+    blendRounds: rounds([["stop", "停下"], ["frog", "青蛙"], ["hand", "手"]]),
+    speakingTask: speakingPrompt("frog", "Is it big or small?", "It's a big frog.", "/audio/is-it-big-or-small.mp3", "/audio/its-a-big-frog.mp3") },
+  { id: "mission-016", title: "矿场声音总复习", focus: "综合复习", review: true,
+    learningNote: "复习矿场学过的声音，拼一拼，再和家人练习购物用语。",
+    steps: [...ninthSteps, ...tenthSteps, ...eleventhSteps, ...twelfthSteps],
+    blendRounds: rounds([["fan", "风扇"], ["jam", "果酱"], ["zip", "拉链"], ["box", "盒子"], ["quit", "停止"]]),
+    speakingTask: speakingPrompt("fan", "What do you want?", "I want a fan, please.", "/audio/what-do-you-want.mp3", "/audio/i-want-a-fan-please.mp3") },
 ];
 export const courseUnits = [
   {

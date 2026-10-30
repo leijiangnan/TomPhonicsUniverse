@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Check, Volume2 } from "lucide-react";
 import { WordArt } from "../components/Art";
+import { TemporaryRecording } from "../components/TemporaryRecording";
 import type { Lesson } from "../data/lesson";
 export function SpeakingChallenge({
   speakingTask,
@@ -39,6 +40,7 @@ export function SpeakingChallenge({
           <Volume2 size={22} />
           {showAnswer ? speakingTask.answer : "听一句示范"}
         </button>
+        <TemporaryRecording onPlay={onPlay} />
       </section>
       <footer className="activity-controls">
         <p className="parent-confirm">家长确认孩子已尝试开口</p>

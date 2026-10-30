@@ -9,7 +9,7 @@ import {
   completeReviewSound,
   placeReviewWord,
 } from "./review";
-const audioFiles = import.meta.glob("../../public/audio/*.mp3", {
+const audioFiles = import.meta.glob("../../public/audio/**/*.mp3", {
   query: "?url",
   import: "default",
   eager: true,
@@ -177,7 +177,7 @@ function finishCourse(state: Progress) {
     state = checkBlend({
       ...state,
       blendRound: i,
-      blendDraft: [...round.word],
+      blendDraft: round.word.match(/qu|./g) ?? [],
     });
   return { ...state, speakingCompleted: true };
 }
@@ -216,7 +216,8 @@ describe("sequential courses", () => {
     expect(eighth.lessonIndex).toBe(7);
     expect(eighth.page).toBe("map");
     expect(courseUnlocked(eighth, 1)).toBe(false);
-    expect(selectCourseForPreview(eighth, 8)).toBe(eighth);
+    expect(selectCourseForPreview(eighth, 8).lessonIndex).toBe(8);
+    expect(selectCourseForPreview(eighth, lessons.length)).toBe(eighth);
 
     const dunes = openPlanetForPreview(eighth, "dunes");
     expect(dunes.page).toBe("blending");
@@ -228,6 +229,35 @@ describe("sequential courses", () => {
     expect(dunesDone(crystal)).toBe(true);
     expect(crystal.speakingCompleted).toBe(false);
     expect(courseUnlocked(crystal, 1)).toBe(false);
+  });
+  it("restores a multi-letter grapheme as one tile and checks the whole word", () => {
+    let state = initialProgress;
+    for (let n = 0; n < 12; n++) {
+      state = finishCourse(state);
+      if (n < 11) state = selectCourse(state, n + 1);
+    }
+    state = {
+      ...state,
+      speakingCompleted: false,
+      blendCompleted: [0, 1],
+      blendRound: 2,
+      blendDraft: ["qu", "i"],
+      blendSolved: false,
+      page: "blending",
+    };
+    const restored = parseProgress(JSON.stringify(state));
+    expect(restored.blendDraft).toEqual(["qu", "i"]);
+    const solved = checkBlend({ ...restored, blendDraft: ["qu", "i", "t"] });
+    expect(solved.blendSolved).toBe(true);
+    expect(solved.blendCompleted).toEqual([0, 1, 2]);
+  });
+  it("introduces x and qu as two sounds, with one tile for qu", () => {
+    const lesson = lessons[11];
+    expect(lesson.steps.find((step) => step.id === "x")?.ipa).toBe("/ks/");
+    expect(lesson.steps.find((step) => step.id === "qu")?.ipa).toBe("/kw/");
+    const quit = lesson.blendRounds.find((round) => round.word === "quit");
+    expect(quit?.requires).toEqual(["qu", "i", "t"]);
+    expect(quit?.letters).toEqual(["t", "i", "qu"]);
   });
   it("migrates a completed v2 lesson without granting other courses completion", () => {
     const state = parseProgress(
@@ -248,10 +278,10 @@ describe("sequential courses", () => {
     expect(restored.page).toBe("map");
     expect(courseUnlocked(restored, 1)).toBe(false);
   });
-  it("has 48 planned lessons, eight implemented lessons, three examples per sound and complete local audio", () => {
+  it("has 48 planned lessons, sixteen implemented lessons, three examples per sound and complete local audio", () => {
     expect(courseUnits.flatMap((u) => u.topics)).toHaveLength(48);
-    expect(lessons).toHaveLength(8);
-    expect(new Set(lessons.map((lesson) => lesson.id)).size).toBe(8);
+    expect(lessons).toHaveLength(16);
+    expect(new Set(lessons.map((lesson) => lesson.id)).size).toBe(16);
     expect(lessons[3].review).toBe(true);
     expect(lessons[3].steps).toHaveLength(8);
     expect(lessons[7].review).toBe(true);
@@ -265,7 +295,7 @@ describe("sequential courses", () => {
         for (const word of step.words) {
           expect(word.usageType).toBe("oral_only");
           expect(hasAudioFile(`public${word.audio}`)).toBe(true);
-          if ("ockehrbgu".includes(step.id))
+          if (["o", "c", "k", "e", "h", "r", "b", "g", "u", "f", "l", "w", "j", "v", "z", "x", "y", "qu"].includes(step.id))
             expect(unitOneArtWords).toContain(word.word);
         }
       }
@@ -273,7 +303,7 @@ describe("sequential courses", () => {
         expect(round.usageType).toBe("decodable");
         expect(round.meaning.trim().length).toBeGreaterThan(0);
         expect(round.requires.every((r) => taught.has(r))).toBe(true);
-        expect([...round.word].sort()).toEqual([...round.letters].sort());
+        expect([...round.letters].sort()).toEqual((round.word.match(/qu|./g) ?? []).sort());
         expect(hasAudioFile(`public${round.audio}`)).toBe(true);
       }
       expect(hasAudioFile(`public${lesson.speakingTask.questionAudio}`)).toBe(

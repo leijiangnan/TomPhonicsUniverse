@@ -23,9 +23,9 @@ export function CoursePath({
           <h1>我的学习路径</h1>
           <p>
             {previewEnabled
-              ? "家长预览已开启 · 可直接查看已开发的第 1–8 课"
+              ? `家长预览已开启 · 可直接查看已开发的第 1–${lessons.length} 课`
               : current < 0
-              ? "字母启航 8 课已完成，后续课程准备中。"
+              ? "已开发课程全部完成，后续课程准备中。"
               : `当前学到第 ${current + 1} 课 · 学完一课，解锁下一课`}
           </p>
         </div>

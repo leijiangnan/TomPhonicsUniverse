@@ -22,7 +22,7 @@
 
 - 课程以系统、明确的自然拼读教学为主线；英语口语另设并行任务。
 - 单词分为“已学规则可解码词”和“听说词汇”；不能将后者当作孩子应该独立拼读的词。
-- 录音回放、语音识别、AI 口语评分、后端和复杂 3D 世界均不属于 MVP。
+- 第一课支持临时录音回放；语音识别、AI 口语评分、后端和复杂 3D 世界尚未实现。
 - 网站负责展示、播放发音、组织互动和记录进度；父亲负责陪练、纠音和口语完成确认。
 - 游戏中不以答错扣分、计时压力或过度奖励惩罚学习表现。
 - 教学发音音频需事先审核、录制或选用可靠素材，尤其要分清字母名称与字母音。
@@ -42,7 +42,7 @@
 
 ### 2.1 当前原型与课次对应（2026-10-26）
 
-课程总览展示全部 48 课的路径，实际可学习「字母启航」第 1–8 课。每课包含「认声音 → 拼单词 → 开口说」三个阶段；完成整课才能解锁下一课。第 9–48 课显示准备中，后 32 课仍按阶段方向规划，尚未确定逐课素材。
+课程总览展示全部 48 课的路径，实际可学习「字母启航」与「单词矿场」第 1–16 课。每课包含「认声音 → 拼单词 → 开口说」三个阶段；完成整课才能解锁下一课。第 17–48 课显示准备中，后 32 课仍按阶段方向规划，尚未确定逐课素材。
 
 | 课次 | 新音 | 拼读题（decodable） | 当前口语任务（oral_only） |
 |---|---|---|---|
@@ -54,10 +54,18 @@
 | 6 | e / h / r | hen、red、pet | What do you like? → I like the hen. |
 | 7 | b / g / u | bug、big、mug | Is it big or small? → It's a big bug. |
 | 8 | 复习全部 17 个音 | cat、dog、mug、hat、bed、map、sun、rug 场景归位 | What do you see? / Where is the map? / Are we ready? |
+| 9 | f / l | fan、lip、fit | What is it? → It's a fan. |
+| 10 | w / j | win、wet、jam | What do you want? → I want a fan. |
+| 11 | v / z | van、vet、zip | What do you want? → I want a van. |
+| 12 | x / y / qu | box、yes、quit | Can I have a fan? → Here you are. |
+| 13 | 短 a / i 对比 | pan、pin、sat、sit | What do you have? → I have a fan. |
+| 14 | 短 o / u / e 对比 | cot、cut、pen | What do you have? → I have a pen. |
+| 15 | 相邻辅音入门 | stop、frog、hand | Is it big or small? → It's a big frog. |
+| 16 | 矿场声音复习 | fan、jam、zip、box、quit | What do you want? → I want a fan, please. |
 
-首课按用户要求升级为宇宙商店情景对话，支持苹果与宝石分支；`I want…` 作为有完整示范的听说表达提前体验，不作为独立拼读目标。第 2、3、5–7 课采用配图单句任务。第 4、8 课共享飞船场景完成声音扫描、可解码词归位和情景对话；拖放同时提供点选替代操作。所有口语句子只作听说任务，不要求孩子独立解码。
+首课按用户要求升级为宇宙商店情景对话，支持苹果与宝石分支；`I want…` 作为有完整示范的听说表达提前体验，不作为独立拼读目标。第 2、3、5–7、9–16 课采用配图单句任务。第 4、8 课共享飞船场景完成声音扫描、可解码词归位和情景对话；拖放同时提供点选替代操作。所有口语句子只作听说任务，不要求孩子独立解码。
 
-17 个已教音各有三个点读图片词。新增内容为 o（octopus/ox/olive）、c（cat/cup/car）、k（key/kite/king）、e（egg/elephant/elbow）、h（hat/hand/horse）、r（rabbit/robot/rain）、b（ball/bed/bus）、g（goat/gift/gum）、u（umbrella/up/uncle）。这些图片词均用于听说拓展；例如 moon、key、kite、rain 等包含尚未教授的元音规则，不作为独立拼读题。全部音频仍为待人工校对的合成素材。
+每个字母或字素步骤各有三个点读图片词。第 9–12 课新增 f（fan/fish/fox）、l（leaf/leg/lion）、w（web/wind/window）、j（jam/jet/jug）、v（van/vet/vest）、z（zip/zebra/zoo）、x（fox/box/six）、y（yak/yellow/yo-yo）和 qu（queen/quilt/quiz）。这些图片词均用于听说拓展；例如 moon、key、kite、rain 等包含尚未教授的元音规则，不作为独立拼读题。字母音采用用户提供的音频，qu 及其他词句使用合成试听素材；均待人工校对。
 
 ## 3. 前 16 周详细安排
 
@@ -92,6 +100,8 @@
 | 14 | 短元音 o/u/e 对比 | dog, sun, pen | What do you have? | 找对应物品 |
 | 15 | CVC→CVCC/CCVC，入门辅音连缀 | hand, frog, stop | 描述颜色和大小 | 更复杂的合成台 |
 | 16 | 综合复习 | 已学规则混合词 | 矿场购物游戏 | 矿场通关 |
+
+第 13、14 课通过重复字母音及相近单词进行对比；第 15 课通过已学单音和 stop / frog / hand 介绍相邻辅音；第 16 课采用字母复习、拼词和配图购物句练习，完整购物游戏尚未实现。
 
 **教学提醒：** `qu` 常对应 /kw/，不是单个音素；`x` 常对应 /ks/。教学内容应说明这类特点，而不是一律将一个字母看作一个声音。第 15 周的 CCVC/CVCC 要从已掌握的音循序添加，必要时延后。
 

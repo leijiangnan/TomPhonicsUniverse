@@ -46,7 +46,7 @@ export function PhonicsLesson({
             {lesson.review ? "复习" : "认识"}{" "}
             <span className="heading-letter">{item.grapheme}</span>
           </h1>
-          <p>点字母听发音，点图片听单词。</p>
+          <p>{lesson.learningNote ?? "点字母听发音，点图片听单词。"}</p>
         </div>
         <nav className="letter-steps" aria-label="字母学习步骤">
           {lesson.steps.map((s, i) => (
@@ -94,8 +94,9 @@ export function PhonicsLesson({
               <Volume2 className="word-speaker" size={23} />
               <WordArt word={word.word} />
               <span className="word-spelling">
-                <em>{word.word[0]}</em>
-                {word.word.slice(1)}
+                {word.word.slice(0, word.word.toLowerCase().indexOf(item.grapheme))}
+                <em>{item.grapheme}</em>
+                {word.word.slice(word.word.toLowerCase().indexOf(item.grapheme) + item.grapheme.length)}
               </span>
               <span className="word-meaning">{word.meaning}</span>
             </button>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ArrowRight, Check, Volume2 } from "lucide-react";
 import { Robot } from "../components/Art";
+import { TemporaryRecording } from "../components/TemporaryRecording";
 import { ReviewScene } from "../components/review/ReviewScene";
 import type { ReviewUnit } from "../data/reviews";
 import type { Progress } from "../lib/progress";
@@ -80,6 +81,7 @@ export function ReviewDialogueChallenge({
               </span>
             </button>
           </div>
+          <TemporaryRecording key={step} onPlay={onPlay} />
         </section>
       </div>
 

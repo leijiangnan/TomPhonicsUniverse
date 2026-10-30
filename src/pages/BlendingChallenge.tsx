@@ -26,7 +26,7 @@ export function BlendingChallenge({
       <div className="activity-heading">
         <div>
           <h1>听声音，拼单词</h1>
-          <p>点下面的字母，放进空格。</p>
+          <p>{lessons[progress.lessonIndex].learningNote ?? "点下面的字母，放进空格。"}</p>
         </div>
         <span className="round-count">
           {progress.blendRound + 1} / {blendRounds.length}
@@ -43,7 +43,7 @@ export function BlendingChallenge({
           <Volume2 size={28} /> 听单词
         </button>
         <div className="word-slots" aria-label="拼出的单词">
-          {[...round.word].map((_, i) => (
+          {round.letters.map((_, i) => (
             <button
               key={i}
               className={`letter-slot ${progress.blendDraft[i] ? "filled" : ""}`}
@@ -107,7 +107,7 @@ export function BlendingChallenge({
         ) : (
           <button
             className="button primary"
-            disabled={progress.blendDraft.length !== round.word.length}
+            disabled={progress.blendDraft.length !== round.letters.length}
             onClick={onCheck}
           >
             拼好了 <Check size={22} />

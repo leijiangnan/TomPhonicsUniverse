@@ -536,8 +536,8 @@ export default function App() {
               {progress.page === "speaking" && (
                 <div className="modal-note">
                   {review
-                    ? "复习课在刚刚整理好的飞船场景中完成多轮对话。先听机器人，再观察高亮物体并尝试回答，由家长确认推进。"
-                    : "第一课是宇宙商店多轮对话；第 2、3、5–7 课是配图口语任务。先听问题、观察图片并尝试开口，再由家长确认。系统不会录音，也不会判断发音是否准确。"}
+                    ? "复习课在刚刚整理好的飞船场景中完成多轮对话。先听机器人，再观察高亮物体并尝试回答；每轮可临时录音回放，由家长确认推进。"
+                    : "口语练习可临时录音、回放和重录；录音最长 30 秒，仅在当前轮次或页面内使用，换轮或离开时清除，不上传、不保存。口语由家长确认，系统不判断发音是否准确。"}
                 </div>
               )}
               <div
@@ -546,7 +546,7 @@ export default function App() {
                 <div>
                   <b>家长预览模式</b>
                   <p>
-                    直接查看第 1–8
+                    直接查看第 1–{lessons.length}
                     课和课内三颗星球。预览操作只在当前页面生效，不保存学习完成状态，也不发放燃料。
                   </p>
                 </div>
@@ -670,7 +670,7 @@ export default function App() {
               <p className="celebration-message">
                 {nextPlanet
                   ? `下一站：${nextPlanet.name}`
-                  : `第 ${progress.lessonIndex + 1} 课完成啦！${progress.lessonIndex + 1 < lessons.length ? "下一课已解锁。" : "字母启航 8 课全部完成！"}`}
+                  : `第 ${progress.lessonIndex + 1} 课完成啦！${progress.lessonIndex + 1 < lessons.length ? "下一课已解锁。" : "已开发课程全部完成！"}`}
               </p>
               <p className="celebration-message">
                 探索燃料：{fuel(progress.space)}
