@@ -61,7 +61,7 @@ export function BlendingChallenge({
           {progress.blendSolved ? (
             <div className="solved-feedback">
               <div><Check size={24} /> 拼对啦！一起读：<b>{round.word}</b></div>
-              <strong>{round.meaning}</strong>
+              <strong>{round.ipa && <span className="word-ipa">{round.ipa} </span>}{round.meaning}</strong>
             </div>
           ) : (
             feedback || "选一个方块，放上去"

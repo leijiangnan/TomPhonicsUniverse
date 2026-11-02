@@ -145,7 +145,7 @@ export function ReviewScene({
                   <Check size={16} />
                   <span>
                     <b>{item.word}</b>
-                    <small>{item.meaning}</small>
+                    <small>{item.ipa} {item.meaning}</small>
                   </span>
                 </span>
               )}

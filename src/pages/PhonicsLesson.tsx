@@ -98,7 +98,7 @@ export function PhonicsLesson({
                 <em>{item.grapheme}</em>
                 {word.word.slice(word.word.toLowerCase().indexOf(item.grapheme) + item.grapheme.length)}
               </span>
-              <span className="word-meaning">{word.meaning}</span>
+              <span className="word-meaning">{word.ipa && <span className="word-ipa">{word.ipa} </span>}{word.meaning}</span>
             </button>
           ))}
         </div>

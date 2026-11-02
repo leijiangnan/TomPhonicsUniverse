@@ -107,7 +107,7 @@ export function DialogueAdventure({
                   >
                     <ShopItemArt item={i} />
                     <span>
-                      {shopItems[i].label}
+                      {i} {shopItems[i].ipa} {shopItems[i].label}
                       {state.confirmed && <ArrowRight size={19} />}
                     </span>
                   </button>

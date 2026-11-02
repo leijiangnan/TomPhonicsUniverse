@@ -507,6 +507,10 @@ button:hover:not(:disabled):not([aria-disabled="true"]) {
   color: #78886c;
   margin-top: 8px;
 }
+.word-ipa {
+  font-weight: 600;
+  white-space: nowrap;
+}
 .playing {
   outline: 3px solid #65ad73;
   outline-offset: 5px;
@@ -842,7 +846,7 @@ button:hover:not(:disabled):not([aria-disabled="true"]) {
   --item-size: 112px;
   position: absolute;
   z-index: 2;
-  left: var(--item-x);
+  left: clamp(calc(var(--item-size) / 2 + 20px), var(--item-x), calc(100% - var(--item-size) / 2 - 20px));
   top: var(--item-y);
   width: var(--item-size);
   height: var(--item-size);

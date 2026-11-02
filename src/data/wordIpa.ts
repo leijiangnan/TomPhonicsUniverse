@@ -1,0 +1,21 @@
+// 美式英语整词音标；与课程词汇共用，避免复习场景出现不同标注。
+export const wordIpa: Readonly<Record<string, string>> = {
+  sun: "/sʌn/", snake: "/sneɪk/", sock: "/sɑk/", apple: "/ˈæpəl/", ant: "/ænt/", alligator: "/ˈælɪˌɡeɪtər/",
+  top: "/tɑp/", tiger: "/ˈtaɪɡər/", turtle: "/ˈtɝtəl/", at: "/æt/", sat: "/sæt/", gem: "/dʒɛm/",
+  pig: "/pɪɡ/", pen: "/pɛn/", pan: "/pæn/", ink: "/ɪŋk/", insect: "/ˈɪnsɛkt/", igloo: "/ˈɪɡlu/",
+  net: "/nɛt/", nest: "/nɛst/", nut: "/nʌt/", map: "/mæp/", moon: "/mun/", mouse: "/maʊs/",
+  dog: "/dɔɡ/", duck: "/dʌk/", dinosaur: "/ˈdaɪnəˌsɔr/", octopus: "/ˈɑktəpəs/", ox: "/ɑks/", olive: "/ˈɑlɪv/",
+  cat: "/kæt/", cup: "/kʌp/", car: "/kɑr/", key: "/ki/", kite: "/kaɪt/", king: "/kɪŋ/",
+  egg: "/ɛɡ/", elephant: "/ˈɛləfənt/", elbow: "/ˈɛlboʊ/", hat: "/hæt/", hand: "/hænd/", horse: "/hɔrs/",
+  rabbit: "/ˈræbɪt/", robot: "/ˈroʊbɑt/", rain: "/reɪn/", ball: "/bɔl/", bed: "/bɛd/", bus: "/bʌs/",
+  goat: "/ɡoʊt/", gift: "/ɡɪft/", gum: "/ɡʌm/", umbrella: "/ʌmˈbrɛlə/", up: "/ʌp/", uncle: "/ˈʌŋkəl/",
+  fan: "/fæn/", fish: "/fɪʃ/", fox: "/fɑks/", leaf: "/lif/", leg: "/lɛɡ/", lion: "/ˈlaɪən/",
+  web: "/wɛb/", wind: "/wɪnd/", window: "/ˈwɪndoʊ/", jam: "/dʒæm/", jet: "/dʒɛt/", jug: "/dʒʌɡ/",
+  van: "/væn/", vet: "/vɛt/", vest: "/vɛst/", zip: "/zɪp/", zebra: "/ˈzibrə/", zoo: "/zu/",
+  box: "/bɑks/", six: "/sɪks/", yak: "/jæk/", yellow: "/ˈjɛloʊ/", "yo-yo": "/ˈjoʊˌjoʊ/",
+  queen: "/kwin/", quilt: "/kwɪlt/", quiz: "/kwɪz/", pin: "/pɪn/", sit: "/sɪt/", tap: "/tæp/",
+  mad: "/mæd/", dip: "/dɪp/", mat: "/mæt/", cot: "/kɑt/", cop: "/kɑp/", kid: "/kɪd/",
+  hen: "/hɛn/", red: "/rɛd/", pet: "/pɛt/", bug: "/bʌɡ/", big: "/bɪɡ/", mug: "/mʌɡ/", rug: "/rʌɡ/",
+  lip: "/lɪp/", fit: "/fɪt/", win: "/wɪn/", wet: "/wɛt/", yes: "/jɛs/", quit: "/kwɪt/",
+  cut: "/kʌt/", stop: "/stɑp/", frog: "/frɔɡ/",
+};

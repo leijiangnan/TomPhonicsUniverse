@@ -73,7 +73,7 @@ export function ReviewPlacementChallenge({
       const roundIndex = roundByWord.get(word);
       if (roundIndex !== undefined) onPlace(roundIndex);
       onPlay(`/audio/${word}.mp3`);
-      setFeedback(`放对啦！${word}，${item.meaning}`);
+      setFeedback(`放对啦！${word} ${item.ipa}，${item.meaning}`);
       setSelectedWord(null);
       return;
     }
@@ -81,7 +81,7 @@ export function ReviewPlacementChallenge({
     setAttempts((current) => ({ ...current, [word]: nextAttempts }));
     setFeedback(
       nextAttempts >= 2
-        ? `再找找，${word}（${review.placementItems.find((item) => item.word === word)?.meaning}）对应的物体已经发光了。`
+        ? `再找找，${word} ${review.placementItems.find((item) => item.word === word)?.ipa}（${review.placementItems.find((item) => item.word === word)?.meaning}）对应的物体已经发光了。`
         : "这个物体和单词不匹配，再试一次。",
     );
   };
@@ -170,13 +170,13 @@ export function ReviewPlacementChallenge({
             progress.reviewPlacements.includes(roundIndex);
           if (placed) {
             onPlay(`/audio/${item.word}.mp3`);
-            setFeedback(`${item.word}，${item.meaning}`);
+            setFeedback(`${item.word} ${item.ipa}，${item.meaning}`);
           } else if (selectedWord) {
             attemptPlacement(selectedWord, item);
           } else {
             onPlay(`/audio/${item.word}.mp3`);
             setFeedback(
-              `${item.word}，${item.meaning}。先选一个单词，再放到这里。`,
+              `${item.word} ${item.ipa}，${item.meaning}。先选一个单词，再放到这里。`,
             );
           }
         }}
@@ -217,7 +217,7 @@ export function ReviewPlacementChallenge({
                   className={`review-word-chip ${active ? "selected" : ""} ${moving ? "dragging" : ""}`}
                   disabled={placed}
                   aria-pressed={active}
-                  aria-label={`选择并播放单词 ${word}，${item.meaning}`}
+                  aria-label={`选择并播放单词 ${word} ${item.ipa}，${item.meaning}`}
                   style={
                     moving
                       ? {
@@ -242,7 +242,7 @@ export function ReviewPlacementChallenge({
                     setFeedback(
                       active
                         ? "已取消选择。"
-                        : `已选择 ${word}（${item.meaning}）`,
+                        : `已选择 ${word} ${item.ipa}（${item.meaning}）`,
                     );
                   }}
                 >
@@ -250,7 +250,7 @@ export function ReviewPlacementChallenge({
                   {placed && <Check size={20} />}
                   <span>
                     <b>{word}</b>
-                    <small>{item.meaning}</small>
+                    <small>{item.ipa} {item.meaning}</small>
                   </span>
                 </button>
               </div>

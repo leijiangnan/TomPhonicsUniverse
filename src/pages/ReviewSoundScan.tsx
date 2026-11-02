@@ -79,7 +79,7 @@ export function ReviewSoundScan({
           if (solved) return;
           if (item.id === correctItem.id) {
             setSolved(true);
-            setFeedback(`找到了！${item.word}，${item.meaning}`);
+            setFeedback(`找到了！${item.word} ${item.ipa}，${item.meaning}`);
           } else {
             const nextMistakes = mistakes + 1;
             setMistakes(nextMistakes);

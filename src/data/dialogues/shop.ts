@@ -5,12 +5,14 @@ export const clip = (id: string) => `/audio/shop/${id}.mp3`;
 export const shopItems = {
   apple: {
     label: "苹果",
+    ipa: "/ˈæpəl/",
     sentence: "I want an apple, please.",
     keyword: "an apple",
     audio: clip("want-apple"),
   },
   gem: {
     label: "宝石",
+    ipa: "/dʒɛm/",
     sentence: "I want a gem, please.",
     keyword: "a gem",
     audio: clip("want-gem"),

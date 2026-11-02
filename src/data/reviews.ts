@@ -1,9 +1,12 @@
+import { wordIpa } from "./wordIpa";
+
 export type ReviewSceneId = "crash-cabin" | "launch-check";
 
 export type ReviewSceneItem = {
   id: string;
   word: string;
   meaning: string;
+  ipa: string;
   x: number;
   y: number;
   size?: "small" | "medium" | "large";
@@ -46,7 +49,7 @@ function item(
   y: number,
   size: ReviewSceneItem["size"] = "medium",
 ): ReviewSceneItem {
-  return { id, word, meaning, x, y, size };
+  return { id, word, meaning, ipa: wordIpa[word], x, y, size };
 }
 
 const firstSoundItems = [

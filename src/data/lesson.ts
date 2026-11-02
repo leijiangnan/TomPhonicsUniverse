@@ -1,3 +1,5 @@
+import { wordIpa } from "./wordIpa";
+
 const letterAudio = (id: string) => `/audio/letters/letter-${id}.mp3`;
 
 const firstLesson = {
@@ -14,9 +16,9 @@ const firstLesson = {
       parentTip:
         "一起模仿小蛇的嘶嘶声。只发 /s/，不要读成字母名称，也不要在后面加「呃」。",
       words: [
-        { word: "sun", meaning: "太阳", audio: "/audio/sun.mp3" },
-        { word: "snake", meaning: "蛇", audio: "/audio/snake.mp3" },
-        { word: "sock", meaning: "袜子", audio: "/audio/sock.mp3" },
+        { word: "sun", ipa: "/sʌn/", meaning: "太阳", audio: "/audio/sun.mp3" },
+        { word: "snake", ipa: "/sneɪk/", meaning: "蛇", audio: "/audio/snake.mp3" },
+        { word: "sock", ipa: "/sɑk/", meaning: "袜子", audio: "/audio/sock.mp3" },
       ],
     },
     {
@@ -28,9 +30,9 @@ const firstLesson = {
       parentTip:
         "先示范 apple 开头的短元音，再请孩子模仿。这里学习的是短 /æ/，不是字母名称 /eɪ/。三个例词都使用美式英语开头的短 /æ/。",
       words: [
-        { word: "apple", meaning: "苹果", audio: "/audio/apple.mp3" },
-        { word: "ant", meaning: "蚂蚁", audio: "/audio/ant.mp3" },
-        { word: "alligator", meaning: "短吻鳄", audio: "/audio/alligator.mp3" },
+        { word: "apple", ipa: "/ˈæpəl/", meaning: "苹果", audio: "/audio/apple.mp3" },
+        { word: "ant", ipa: "/ænt/", meaning: "蚂蚁", audio: "/audio/ant.mp3" },
+        { word: "alligator", ipa: "/ˈælɪˌɡeɪtər/", meaning: "短吻鳄", audio: "/audio/alligator.mp3" },
       ],
     },
     {
@@ -42,17 +44,17 @@ const firstLesson = {
       parentTip:
         "舌尖轻碰上齿龈，然后短促地放开。发一个轻而短的 /t/，避免在后面加元音，也不要读成字母名称 /tiː/。",
       words: [
-        { word: "top", meaning: "陀螺", audio: "/audio/top.mp3" },
-        { word: "tiger", meaning: "老虎", audio: "/audio/tiger.mp3" },
-        { word: "turtle", meaning: "海龟", audio: "/audio/turtle.mp3" },
+        { word: "top", ipa: "/tɑp/", meaning: "陀螺", audio: "/audio/top.mp3" },
+        { word: "tiger", ipa: "/ˈtaɪɡər/", meaning: "老虎", audio: "/audio/tiger.mp3" },
+        { word: "turtle", ipa: "/ˈtɝtəl/", meaning: "海龟", audio: "/audio/turtle.mp3" },
       ],
     },
   ],
 } as const;
 
 const firstRounds = [
-  { word: "at", meaning: "在……", letters: ["t", "a"], audio: "/audio/at.mp3" },
-  { word: "sat", meaning: "坐（sit 的过去式）", letters: ["t", "s", "a"], audio: "/audio/sat.mp3" },
+  { word: "at", ipa: "/æt/", meaning: "在……", letters: ["t", "a"], audio: "/audio/at.mp3" },
+  { word: "sat", ipa: "/sæt/", meaning: "坐（sit 的过去式）", letters: ["t", "s", "a"], audio: "/audio/sat.mp3" },
 ] as const;
 const firstSpeaking = {
   word: "apple",
@@ -77,6 +79,7 @@ export type SoundStep = {
   parentTip: string;
   words: readonly {
     word: string;
+    ipa?: string;
     meaning: string;
     audio: string;
     usageType?: "oral_only";
@@ -91,6 +94,7 @@ export type Lesson = {
   steps: readonly SoundStep[];
   blendRounds: readonly {
     word: string;
+    ipa?: string;
     meaning: string;
     letters: readonly string[];
     audio: string;
@@ -122,6 +126,7 @@ function sound(
     audio: letterAudio(id),
     words: words.map(([word, meaning]) => ({
       word,
+      ipa: wordIpa[word],
       meaning,
       audio: `/audio/${word}.mp3`,
       usageType: "oral_only",
@@ -132,7 +137,7 @@ function rounds(words: [string, string][]) {
   return words.map(([word, meaning]) => {
     const graphemes = word.match(/qu|./g) ?? [];
     return {
-      word, meaning, letters: [...graphemes].reverse(),
+      word, ipa: wordIpa[word], meaning, letters: [...graphemes].reverse(),
       audio: `/audio/${word}.mp3`, usageType: "decodable" as const,
       requires: [...new Set(graphemes)],
     };
