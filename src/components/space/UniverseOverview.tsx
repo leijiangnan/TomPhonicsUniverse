@@ -43,7 +43,7 @@ export function UniverseOverview({ space, regionIndex, setRegionIndex, flying }:
       <p className="node-status">{selected.id === "station" ? "虚构设施" : nodeScience[selected.number]?.category ?? selected.kind} · {status(selected.id)}</p>
       <NodeDetails key={selected.id} node={selected} />
       {selected.note && <p>{selected.note}</p>}
-      <div className="node-travel-status">{reached(selected.id) ? selected.id === space.current ? "飞船现在停在这里。" : "已发现，可从下方航线免费回访。" : selected.id === "station" ? "可从下方航线前往补给空间站。" : "地点互动与航行尚未开放，可以先看看未来的探索目标。"}
+      <div className="node-travel-status">{reached(selected.id) ? selected.id === space.current ? "飞船现在停在这里。" : "已发现，可从页面上方的航行控制台免费回访。" : selected.id === "station" ? "可从页面上方的航行控制台前往补给空间站。" : "地点互动与航行尚未开放，可以先看看未来的探索目标。"}
       {!reached(selected.id) && <p>{cost !== null ? `${selected.id === "station" ? "首次" : "计划"}需要 ${cost} 燃料，现有 ${fuel(space)}，还差 ${Math.max(0, cost - fuel(space))}。` : "燃料费用与开放条件待设计。"}</p>}</div>
       <button className="button primary" onClick={() => setSelected(null)}>回到全景</button>
     </Dialog>}

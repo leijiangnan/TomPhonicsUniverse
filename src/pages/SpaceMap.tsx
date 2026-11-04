@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { ArrowRight, Check, Fuel, Rocket, Volume2 } from "lucide-react";
 import { Badge } from "../components/space/SpaceArt";
+import { Ship } from "../components/space/SpaceArt";
 import { nextExplorationNode } from "../data/space/catalog";
 import { UniverseOverview } from "../components/space/UniverseOverview";
 import { Robot, Cube } from "../components/Art";
+import { MissionMapArt } from "../components/MissionBrief";
 import {
   fuel,
   stationFound,
@@ -11,19 +13,21 @@ import {
   type SpaceNodeId,
 } from "../lib/space";
 import { stationLines } from "../data/space/station";
-import type { Progress } from "../lib/progress";
+import { courseDone, type Progress } from "../lib/progress";
 export function SpaceMap({
   progress,
   onTravel,
   onLearn,
   onConfirm,
   onPlay,
+  onPractice,
 }: {
   progress: Progress;
   onTravel: (id: SpaceNodeId) => Promise<boolean>;
   onLearn: () => void;
   onConfirm: (step: number) => Promise<boolean>;
   onPlay: (src: string) => void;
+  onPractice?: () => void;
 }) {
   const [regionIndex, setRegionIndex] = useState(0);
   const [flying, setFlying] = useState(false);
@@ -147,17 +151,10 @@ export function SpaceMap({
         </section>
       ) : (
         <>
-          <UniverseOverview space={s} regionIndex={regionIndex} setRegionIndex={setRegionIndex} flying={flying} />
-          <section className="next-fuel" aria-label="下一站燃料" aria-live="polite">
-            <div><span>{found ? "下一探索目标 · 筹备中" : "下一站"}</span><h2>{nextNode.name}</h2></div>
-            <div className="fuel-budget">
-              <div><span>现有燃料</span><strong>{balance}</strong></div>
-              <div><span>首次需要</span><strong>{found ? "待定" : STATION_COST}</strong></div>
-              <div><span>还差</span><strong>{found ? "待定" : Math.max(0, STATION_COST - balance)}</strong></div>
-              {!found && <progress aria-label="下一站燃料储备" value={Math.min(balance, STATION_COST)} max={STATION_COST} />}
-            </div>
-            <p>{found ? "国际空间站尚未开放，燃料费用与开放条件待设计。" : balance >= STATION_COST ? "燃料已备好，可以起飞！" : "完成学习任务，获得燃料。"}</p>
-          </section>
+          <section className="flight-console" aria-label="航行控制台">
+            <div className={`console-ship ${flying ? "flying" : ""}`}><Ship /><span>{s.current === "earth" ? "停靠地球" : "停靠补给空间站"}</span></div>
+            <div className="console-task">
+              <span className="eyebrow">{s.current === "earth" ? found ? "免费回访" : "第一段旅程" : s.badge ? "你的探索收藏" : "抵达后的任务"}</span>
           <div className="voyage-action" aria-live="polite">
             {flying ? (
               <p className="flight-status">
@@ -205,6 +202,15 @@ export function SpaceMap({
               </>
             )}
           </div>
+              {!found && <div className="console-budget" aria-label="下一站燃料">
+                <span>首次航行 {STATION_COST} 燃料</span><progress aria-label="下一站燃料储备" value={Math.min(balance, STATION_COST)} max={STATION_COST} /><strong>{balance >= STATION_COST ? "已经备好" : `还差 ${STATION_COST - balance}`}</strong>
+              </div>}
+              {s.current === "station" && s.badge && onPractice && <button className="button secondary console-practice" onClick={onPractice}>出发前，复习一下 <ArrowRight size={20} /></button>}
+              {courseDone(progress, 2) && <div className="console-navigation"><MissionMapArt pieces={3} installed /><span>第 3 课的探险地图，已装进驾驶舱</span></div>}
+            </div>
+          </section>
+          {found && <p className="future-destination">远方目标：{nextNode.name} · 筹备中。现在可以回访补给站，继续复习。</p>}
+          <UniverseOverview space={s} regionIndex={regionIndex} setRegionIndex={setRegionIndex} flying={flying} />
           <div className="voyage-bottom">
             <span>游戏航线 · 非真实比例 · 补给空间站为虚构设施</span>
             {s.current === "station" && (

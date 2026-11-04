@@ -117,7 +117,7 @@ export function ReviewScene({
   onItem: (item: ReviewSceneItem) => void;
 }) {
   return (
-    <section className="review-scene" aria-label={title}>
+    <section className={`review-scene${items.length > 4 ? " scene-many" : ""}`} aria-label={title}>
       <div className="review-scene-name">{title}</div>
       <SceneBackdrop sceneId={sceneId} />
       <div className="review-scene-items">

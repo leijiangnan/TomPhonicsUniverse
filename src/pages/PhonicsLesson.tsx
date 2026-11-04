@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { WordArt } from "../components/Art";
 import { lessons } from "../data/lesson";
 import type { Progress } from "../lib/progress";
+import { MissionBrief } from "../components/MissionBrief";
 export function PhonicsLesson({
   progress,
   onStep,
@@ -68,6 +69,7 @@ export function PhonicsLesson({
           ))}
         </nav>
       </div>
+      <MissionBrief progress={progress} />
       <section
         className={`classroom ${item.theme}`}
         aria-label={`字母 ${item.grapheme} 和三个例词`}

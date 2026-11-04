@@ -41,7 +41,7 @@ export function ReviewSoundScan({
   }, [progress.step, progress.reviewSounds]);
 
   return (
-    <main className="review-page">
+    <main className="review-page review-scan-page">
       <div className="activity-heading review-heading">
         <div>
           <h1>启动声音扫描</h1>

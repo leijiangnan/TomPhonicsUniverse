@@ -59,6 +59,6 @@ export function advanceReviewDialogue(progress: Progress): Progress {
   return {
     ...progress,
     reviewDialogueStep: next,
-    speakingCompleted: next === review.dialogue.length,
+    speakingCompleted: progress.speakingCompleted || next === review.dialogue.length,
   };
 }

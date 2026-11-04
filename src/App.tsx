@@ -22,6 +22,11 @@ import {
 } from "lucide-react";
 import { Cube, PlanetArt } from "./components/Art";
 import { Dialog } from "./components/Dialog";
+import { ParentLearningCard } from "./components/ParentLearningCard";
+import { ParentBackup } from "./components/ParentBackup";
+import { MissionBrief } from "./components/MissionBrief";
+import { QuickPractice } from "./pages/QuickPractice";
+import { hintPractice, observePractice, practicePool, startPractice } from "./lib/practice";
 import { CoursePath } from "./pages/CoursePath";
 import { GalaxyMap } from "./pages/GalaxyMap";
 import { PhonicsLesson } from "./pages/PhonicsLesson";
@@ -44,6 +49,8 @@ import {
   openPlanetForPreview,
   planetStatus,
   type Progress,
+  updateBlendDraft,
+  type BlendDraftChange,
 } from "./lib/progress";
 import {
   advanceReviewDialogue,
@@ -67,6 +74,7 @@ export default function App() {
   } = useProgress();
   const [previewEnabled, setPreviewEnabled] = useState(false);
   const [previewProgress, setPreviewProgress] = useState<Progress | null>(null);
+  const previewProgressRef = useRef<Progress | null>(null);
   const progress =
     previewEnabled && previewProgress ? previewProgress : savedProgress;
   const setProgress = useCallback(
@@ -75,10 +83,10 @@ export default function App() {
       durable = false,
     ): Promise<boolean> => {
       if (!previewEnabled) return saveProgress(change, durable);
-      setPreviewProgress((current) => {
-        const base = current ?? savedProgress;
-        return typeof change === "function" ? change(base) : change;
-      });
+      const base = previewProgressRef.current ?? savedProgress;
+      const next = typeof change === "function" ? change(base) : change;
+      previewProgressRef.current = next;
+      setPreviewProgress(next);
       return Promise.resolve(true);
     },
     [previewEnabled, saveProgress, savedProgress],
@@ -115,9 +123,11 @@ export default function App() {
     setFeedback("");
     setNotice("");
     if (enabled) {
+      previewProgressRef.current = savedProgress;
       setPreviewProgress(savedProgress);
       setPreviewEnabled(true);
     } else {
+      previewProgressRef.current = null;
       setPreviewEnabled(false);
       setPreviewProgress(null);
     }
@@ -200,6 +210,23 @@ export default function App() {
     },
     [progress.volume],
   );
+  const audioSequence = useCallback((sources: readonly string[]) => {
+    const request = ++audioRequest.current;
+    stopAudio();
+    void (async () => {
+      try {
+        for (const source of sources) {
+          if (request !== audioRequest.current) return;
+          setPlayingSrc(source);
+          await playAudio(source, progress.volume);
+        }
+      } catch (error) {
+        if (request === audioRequest.current && error instanceof Error && error.message !== "cancelled") setNotice(error.message);
+      } finally {
+        if (request === audioRequest.current) setPlayingSrc(null);
+      }
+    })();
+  }, [progress.volume]);
   const back = () => setProgress((p) => ({ ...p, page: "map" }));
   const enter = (id: PlanetId) => {
     if (!previewEnabled && planetStatus(progress, id) === "locked") {
@@ -216,86 +243,69 @@ export default function App() {
     setSelectedPlanet(id);
     setModal("celebration");
   };
-  const finishLetter = () => {
-    const next = review
-      ? completeReviewSound(progress)
-      : completeStep(progress);
-    if (progress.step === STEP_COUNT - 1 && forestDone(next)) {
-      setProgress({ ...next, page: "map" });
-      celebrate("forest");
-    } else setProgress(next);
+  const finishLetter = async () => {
+    const expected = progress.step;
+    let finished = false;
+    await setProgress((p) => {
+      if (p.page !== "lesson" || p.lessonIndex !== progress.lessonIndex || p.step !== expected) return p;
+      const next = review ? completeReviewSound(p) : completeStep(p);
+      finished = expected === STEP_COUNT - 1 && forestDone(next);
+      return finished ? { ...next, page: "map" } : next;
+    });
+    if (finished) celebrate("forest");
   };
   const changeStep = (n: number) => {
-    if (
-      n >= 0 &&
-      n < STEP_COUNT &&
-      (n === 0 ||
-        progress.completed.includes(n - 1) ||
-        progress.completed.includes(n))
-    )
-      setProgress((p) => ({ ...p, step: n }));
+    setProgress((p) => p.page === "lesson" && p.lessonIndex === progress.lessonIndex && n >= 0 && n < STEP_COUNT &&
+      (n === 0 || p.completed.includes(n - 1) || p.completed.includes(n)) ? { ...p, step: n } : p);
   };
-  const changeDraft = (letters: string[]) => {
+  const changeDraft = (change: BlendDraftChange) => {
     setFeedback("");
-    setProgress((p) => ({ ...p, blendDraft: letters, blendSolved: false }));
+    setProgress((p) => updateBlendDraft(p, change));
   };
-  const check = () => {
-    const next = checkBlend(progress);
-    if (next === progress) {
-      setFeedback("再听一次，换一换方块。");
-      return;
-    }
-    setProgress(next);
-    setFeedback("");
-    if (progress.volume > 0) audio(blendRounds[progress.blendRound].audio);
+  const check = async () => {
+    let attempted = false, solved = false;
+    await setProgress((p) => {
+      if (p.page !== "blending" || p.lessonIndex !== progress.lessonIndex || p.blendRound !== progress.blendRound || p.blendSolved) return p;
+      attempted = true;
+      const next = checkBlend(p);
+      solved = next !== p;
+      return next;
+    });
+    if (!attempted) return;
+    setFeedback(solved ? "" : "再听一次，换一换方块。");
+    if (solved && progress.volume > 0) audio(blendRounds[progress.blendRound].audio);
   };
-  const nextRound = () => {
-    if (review) {
-      const currentBatch = review.placementBatches[progress.blendRound];
-      const currentBatchDone = currentBatch.every((word) => {
-        const roundIndex = lesson.blendRounds.findIndex(
-          (round) => round.word === word,
-        );
-        return progress.reviewPlacements.includes(roundIndex);
-      });
-      if (!currentBatchDone) return;
-      if (progress.blendRound === review.placementBatches.length - 1) {
-        setProgress((p) => ({ ...p, page: "map" }));
-        celebrate("dunes");
-      } else {
-        setProgress((p) => ({ ...p, blendRound: p.blendRound + 1 }));
+  const nextRound = async () => {
+    let finished = false;
+    await setProgress((p) => {
+      if (p.page !== "blending" || p.lessonIndex !== progress.lessonIndex || p.blendRound !== progress.blendRound) return p;
+      if (review) {
+        const batchDone = review.placementBatches[p.blendRound].every((word) => p.reviewPlacements.includes(lesson.blendRounds.findIndex((round) => round.word === word)));
+        if (!batchDone) return p;
+        finished = p.blendRound === review.placementBatches.length - 1;
+        return finished ? { ...p, page: "map" } : { ...p, blendRound: p.blendRound + 1 };
       }
-      return;
-    }
-    if (!progress.blendSolved) return;
-    if (progress.blendRound === blendRounds.length - 1 && dunesDone(progress)) {
-      setProgress((p) => ({ ...p, page: "map" }));
-      celebrate("dunes");
-    } else
-      setProgress((p) => ({
-        ...p,
-        blendRound: p.blendRound + 1,
-        blendDraft: [],
-        blendSolved: false,
-      }));
+      if (!p.blendSolved) return p;
+      finished = p.blendRound === blendRounds.length - 1 && dunesDone(p);
+      return finished ? { ...p, page: "map" } : { ...p, blendRound: p.blendRound + 1, blendDraft: [], blendSolved: false };
+    });
+    if (finished) celebrate("dunes");
   };
-  const finishSpeaking = () => {
-    if (review) {
-      if (!dunesDone(progress)) return;
-      const next = advanceReviewDialogue(progress);
-      if (next.speakingCompleted) {
-        setProgress({ ...next, page: "map" });
-        celebrate("crystal");
-      } else setProgress(next);
-      return;
-    }
-    if (
-      !dunesDone(progress) ||
-      (progress.lessonIndex === 0 && progress.dialogue?.node !== "completed")
-    )
-      return;
-    setProgress((p) => ({ ...p, speakingCompleted: true, page: "map" }));
-    celebrate("crystal");
+  const finishSpeaking = async () => {
+    let finished = false;
+    await setProgress((p) => {
+      if (p.page !== "speaking" || p.lessonIndex !== progress.lessonIndex || !dunesDone(p)) return p;
+      if (review) {
+        if (p.reviewDialogueStep !== progress.reviewDialogueStep) return p;
+        const next = advanceReviewDialogue(p);
+        finished = next.reviewDialogueStep === review.dialogue.length;
+        return finished ? { ...next, page: "map" } : next;
+      }
+      if (p.lessonIndex === 0 && p.dialogue?.node !== "completed") return p;
+      finished = true;
+      return { ...p, speakingCompleted: true, page: "map" };
+    });
+    if (finished) celebrate("crystal");
   };
   const planet = planets.find((p) => p.id === selectedPlanet)!;
   const planetIndex = planets.findIndex((p) => p.id === selectedPlanet);
@@ -309,7 +319,7 @@ export default function App() {
         ? planets[1].name
         : planets[2].name;
   return (
-    <div className="app-shell" ref={appShell}>
+    <div className={`app-shell${previewEnabled ? " preview-session" : ""}`} ref={appShell}>
       <header className="topbar">
         {progress.page === "map" ? (
           <div className="brand">
@@ -333,6 +343,8 @@ export default function App() {
                 ? "星际航行"
                 : progress.page === "courses"
                   ? "课程总览"
+                  : progress.page === "practice"
+                    ? "轻复习"
                   : `第 ${progress.lessonIndex + 1} 课 · ${pageTitle}`}
             </span>
           </>
@@ -367,10 +379,17 @@ export default function App() {
           </button>
         </div>
       </header>
-      {progress.page === "space" ? (
+      {progress.page === "practice" ? (
+        <QuickPractice progress={progress}
+          onHint={(id, sources) => { setProgress((p) => hintPractice(p, id)); audioSequence(sources); }}
+          onObserve={(id, outcome) => { stopAudio(); audioRequest.current++; setPlayingSrc(null); setProgress((p) => observePractice(p, id, outcome)); }}
+          onAgain={() => setProgress((p) => startPractice(p, true))}
+          onBack={back} />
+      ) : progress.page === "space" ? (
         <SpaceMap
           progress={progress}
           onPlay={audio}
+          onPractice={practicePool(progress).length ? () => setProgress((p) => startPractice(p)) : undefined}
           onTravel={(target) => setProgress((p) => travel(p, target), true)}
           onConfirm={(step) =>
             setProgress((p) => confirmStation(p, step), true)
@@ -390,6 +409,7 @@ export default function App() {
           progress={progress}
           previewEnabled={previewEnabled}
           onEnter={enter}
+          onPractice={practicePool(progress).length ? () => setProgress((p) => startPractice(p)) : undefined}
           onSpace={() => setProgress((p) => ({ ...p, page: "space" }))}
           onCourses={() => setProgress((p) => ({ ...p, page: "courses" }))}
           onContinue={() =>
@@ -426,6 +446,8 @@ export default function App() {
         <BlendingChallenge
           progress={progress}
           onPlay={audio}
+          onPlaySequence={audioSequence}
+          playingSrc={playingSrc}
           onDraft={changeDraft}
           onCheck={check}
           onNext={nextRound}
@@ -445,7 +467,7 @@ export default function App() {
           onComplete={finishSpeaking}
           onAction={(action) =>
             setProgress((p) =>
-              dunesDone(p)
+              dunesDone(p) && (p.dialogue?.node ?? "greeting") === (progress.dialogue?.node ?? "greeting")
                 ? {
                     ...p,
                     dialogue: dialogueReducer(
@@ -461,6 +483,7 @@ export default function App() {
         <SpeakingChallenge
           key={lesson.id}
           speakingTask={lesson.speakingTask}
+          progress={progress}
           onPlay={audio}
           onComplete={finishSpeaking}
         />
@@ -493,6 +516,8 @@ export default function App() {
         >
           {modal === "settings" && (
             <>
+              <ParentLearningCard progress={progress} />
+              {practicePool(progress).length > 0 && <button className="button secondary full" onClick={() => { setModal(null); setProgress((p) => startPractice(p)); }}>复习一下已学内容 <ArrowRight size={20} /></button>}
               <p>
                 按顺序完成「认声音 → 拼单词 →
                 开口说」。完成一颗星球后，它会发光、显示勾号，并解锁下一颗。
@@ -601,9 +626,10 @@ export default function App() {
               <div className="modal-note">
                 <b>试听音频待人工校对</b>
                 <p>
-                  当前为合成试听音。请家长先试听，或关闭声音后领读。学习进度保存在当前浏览器，更换设备不会自动同步。
+                  字母音含用户提供的素材，其余多为合成试听音。请家长先试听，或关闭声音后领读。学习进度保存在当前浏览器，更换设备不会自动同步。
                 </p>
               </div>
+              <ParentBackup progress={savedProgress} previewEnabled={previewEnabled} onImport={(imported) => saveProgress(imported, true)} />
               <button
                 className="button primary full"
                 onClick={() => setModal(null)}
@@ -675,6 +701,11 @@ export default function App() {
               <p className="celebration-message">
                 探索燃料：{fuel(progress.space)}
               </p>
+              <div className="celebration-learning">
+                <span>{selectedPlanet === "forest" ? "我们练过的声音" : selectedPlanet === "dunes" ? "我们拼过的单词" : "我们尝试说过的话"}</span>
+                <strong>{selectedPlanet === "forest" ? lesson.steps.map((step) => step.grapheme).join(" · ") : selectedPlanet === "dunes" ? lesson.blendRounds.map((round) => round.word).join(" · ") : lesson.id === "mission-001" ? "Hello! · I want… · Thank you! · Bye!" : lesson.speakingTask.answer}</strong>
+              </div>
+              <MissionBrief progress={progress} />
               {!previewEnabled && (
                 <button
                   className="button secondary full"

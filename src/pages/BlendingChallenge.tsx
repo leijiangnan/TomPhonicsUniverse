@@ -1,9 +1,14 @@
 import { Check, RotateCcw, Volume2, ArrowRight } from "lucide-react";
 import { lessons } from "../data/lesson";
-import type { Progress } from "../lib/progress";
+import type { BlendDraftChange, Progress } from "../lib/progress";
+import { useMemo, useState } from "react";
+import { wordSegments } from "../data/learning";
+import { MissionBrief } from "../components/MissionBrief";
 export function BlendingChallenge({
   progress,
   onPlay,
+  onPlaySequence,
+  playingSrc,
   onDraft,
   onCheck,
   onNext,
@@ -11,7 +16,9 @@ export function BlendingChallenge({
 }: {
   progress: Progress;
   onPlay: (src: string) => void;
-  onDraft: (letters: string[]) => void;
+  onPlaySequence: (sources: readonly string[]) => void;
+  playingSrc: string | null;
+  onDraft: (change: BlendDraftChange) => void;
   onCheck: () => void;
   onNext: () => void;
   feedback: string;
@@ -21,6 +28,18 @@ export function BlendingChallenge({
     .slice(0, progress.lessonIndex + 1)
     .flatMap((l) => l.steps);
   const round = blendRounds[progress.blendRound];
+  const [modelRound, setModelRound] = useState<string | null>(null);
+  const showModel = modelRound === round.word;
+  const segments = wordSegments(round.word);
+  // Shuffle on entering a word; choosing tiles does not move the remaining bank.
+  const bank = useMemo(() => {
+    const tiles = [...round.letters];
+    for (let i = tiles.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
+    }
+    return tiles;
+  }, [round]);
   return (
     <main className="game-page">
       <div className="activity-heading">
@@ -32,16 +51,26 @@ export function BlendingChallenge({
           {progress.blendRound + 1} / {blendRounds.length}
         </span>
       </div>
+      <MissionBrief progress={progress} />
       <section
         className={`crafting-board ${progress.blendSolved ? "solved" : ""}`}
         aria-label="拼字合成台"
       >
-        <button
+        <div className="blend-listening"><button
           className="button listen-word"
           onClick={() => onPlay(round.audio)}
         >
           <Volume2 size={28} /> 听单词
-        </button>
+        </button><button className="button blend-model-button" aria-expanded={showModel} onClick={() => {
+          setModelRound(round.word);
+          onPlaySequence([...segments.flatMap((segment) => segment.audio ? [segment.audio] : []), round.audio]);
+        }}><Volume2 size={22} />一起合音</button></div>
+        {showModel && <div className="blend-model" aria-label="逐音示范与整词">
+          <span>先听每个声音，再听整词</span>
+          <div>{segments.map((segment, index) => <button key={index} className={playingSrc === segment.audio ? "active" : ""} onClick={() => segment.audio && onPlay(segment.audio!)} aria-label={`听字素 ${segment.grapheme}，${segment.phonemes.length} 个音`}>
+            <b>{segment.grapheme}</b><span>{segment.phonemes.map((_, i) => <i key={i} />)}</span>
+          </button>)}<ArrowRight size={22} /><button className={playingSrc === round.audio ? "active" : ""} onClick={() => onPlay(round.audio)} aria-label={`听整词 ${round.word}`}><b>{round.word}</b></button></div>
+        </div>}
         <div className="word-slots" aria-label="拼出的单词">
           {round.letters.map((_, i) => (
             <button
@@ -50,7 +79,7 @@ export function BlendingChallenge({
               aria-label={`第 ${i + 1} 个格子${progress.blendDraft[i] ? `：${progress.blendDraft[i]}，点按移除` : "，空"}`}
               disabled={!progress.blendDraft[i] || progress.blendSolved}
               onClick={() =>
-                onDraft(progress.blendDraft.filter((_, n) => n !== i))
+                onDraft((current) => current.filter((_, n) => n !== i))
               }
             >
               {progress.blendDraft[i] ?? <span className="slot-dot" />}
@@ -68,18 +97,18 @@ export function BlendingChallenge({
           )}
         </div>
         <div className="letter-bank" aria-label="可用字母方块">
-          {round.letters.map((letter, tileIndex) => (
+          {bank.map((letter, tileIndex) => (
             <button
               className={`letter-option ${sounds.find((s) => s.id === letter)?.theme}`}
               key={tileIndex}
               aria-label={`选择字母 ${letter}`}
               disabled={
                 progress.blendDraft.filter((l) => l === letter).length >
-                  round.letters.slice(0, tileIndex).filter((l) => l === letter)
+                  bank.slice(0, tileIndex).filter((l) => l === letter)
                     .length || progress.blendSolved
               }
               onClick={() => {
-                onDraft([...progress.blendDraft, letter]);
+                onDraft((current) => [...current, letter]);
                 const sound = sounds.find((s) => s.id === letter);
                 if (sound && progress.volume > 0) onPlay(sound.audio);
               }}

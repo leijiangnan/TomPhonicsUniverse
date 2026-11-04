@@ -8,6 +8,8 @@ import {
   type LessonProgress,
   parseProgress,
   type Progress,
+  openPlanet,
+  courseUnlocked,
 } from "./progress";
 import {
   advanceReviewDialogue,
@@ -49,6 +51,23 @@ function reviewState(lessonIndex: 3 | 7): Progress {
 }
 
 describe("scene review lessons", () => {
+  it("keeps historical completion and fuel while replaying all dialogue rounds", () => {
+    const complete = reconcileRewards({ ...reviewState(7), ...doneRecord(7) });
+    let replay = openPlanet(complete, "crystal");
+    expect(replay.reviewDialogueStep).toBe(0);
+    replay = advanceReviewDialogue(replay);
+    expect(replay.reviewDialogueStep).toBe(1);
+    expect(replay.speakingCompleted).toBe(true);
+    expect(courseDone(replay, 7)).toBe(true);
+    expect(courseUnlocked(replay, 8)).toBe(true);
+    const restored = parseProgress(JSON.stringify(replay));
+    expect(restored.reviewDialogueStep).toBe(1);
+    expect(restored.speakingCompleted).toBe(true);
+    expect(restored.space.transactions).toEqual(complete.space.transactions);
+    replay = advanceReviewDialogue(advanceReviewDialogue(restored));
+    expect(replay.reviewDialogueStep).toBe(3);
+    expect(reconcileRewards(replay).space.transactions).toEqual(complete.space.transactions);
+  });
   it.each([3, 7] as const)(
     "completes lesson %s in sound, placement and dialogue stages",
     (lessonIndex) => {

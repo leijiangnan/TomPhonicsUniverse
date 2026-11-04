@@ -9,6 +9,7 @@ import {
   Rocket,
 } from "lucide-react";
 import { PlanetArt } from "../components/Art";
+import { MissionBrief } from "../components/MissionBrief";
 import { lessons, planets, type PlanetId } from "../data/lesson";
 import {
   courseDone,
@@ -24,30 +25,32 @@ export function GalaxyMap({
   onCourses,
   onContinue,
   onSpace,
+  onPractice,
 }: {
   progress: Progress;
   previewEnabled: boolean;
   onSpace: () => void;
+  onPractice?: () => void;
   onCourses: () => void;
   onContinue: () => void;
   onEnter: (id: PlanetId) => void;
 }) {
   const count = litCount(progress);
+  const lesson = lessons[progress.lessonIndex];
   return (
     <main className="map-page">
       <div className="course-banner">
-        <span>
+        <span className="course-context">
           {previewEnabled
             ? `家长预览 · 正在查看第 ${progress.lessonIndex + 1} 课`
             : currentCourse(progress) < 0
-            ? "字母启航已完成"
-            : `当前学到第 ${currentCourse(progress) + 1} 课`}{" "}
-          · 已完成 {lessons.filter((_, n) => courseDone(progress, n)).length} /
-          48 课
+            ? "已开发的 16 课已完成"
+            : `第 ${progress.lessonIndex + 1} 课 · ${lesson.focus}`}
+          <small>已完成 {lessons.filter((_, n) => courseDone(progress, n)).length} / 48 课</small>
         </span>
         <div className="map-navigation">
           <button
-            className="button voyage-entry"
+            className="button secondary voyage-entry"
             disabled={previewEnabled}
             onClick={onSpace}
           >
@@ -68,15 +71,14 @@ export function GalaxyMap({
       <div className="map-heading">
         <div>
           <h1>
-            第 {progress.lessonIndex + 1} 课 ·{" "}
-            {lessons[progress.lessonIndex].focus}
+            {lesson.title}
           </h1>
           <p>
             {count === planets.length
               ? currentCourse(progress) < 0
                 ? "已开发课程全部完成，随时可以复习。"
                 : "本课已完成，可以复习或继续下一课。"
-              : "完成一站，就点亮一颗。"}
+              : count === 0 ? "先认声音，再拼单词，最后和家人开口说。" : count === 1 ? "声音线索找到了，接着去拼单词。" : "单词拼好啦，去和家人说一说。"}
           </p>
         </div>
         <div
@@ -90,6 +92,7 @@ export function GalaxyMap({
           <span>已点亮</span>
         </div>
       </div>
+      <MissionBrief progress={progress} />
       {count === 3 && (
         <button
           className="button primary continue-course"
@@ -181,6 +184,7 @@ export function GalaxyMap({
           );
         })}
       </section>
+      {onPractice && <div className="map-practice-entry"><div><RotateCcw size={22} /><span>把学过的，再读一读</span></div><button className="button secondary" onClick={onPractice}>复习一下 <ArrowRight size={20} /></button></div>}
     </main>
   );
 }

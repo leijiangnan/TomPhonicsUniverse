@@ -2815,3 +2815,365 @@ input[type="range"] {
   .node-facts > div { padding: 10px 12px; }
   .node-facts dd { font-size: 17px; }
 }
+
+/* Learning cockpit: one clear action, with the full three-stop route retained. */
+.eyebrow { display: block; color: #c4dbcc; font-size: 14px; font-weight: 800; letter-spacing: .04em; margin-bottom: 7px; }
+.topbar { height: 80px; }
+.preview-session .parent-button { border: 1px solid #a5c4d8; background: #344c62; color: #e1eef4; }
+.course-banner { margin: 0; padding: 18px 0 0; align-items: center; }
+.course-context { display: flex; flex-direction: column; gap: 3px; font-size: 17px; color: #d9e7e2; }
+.course-context small { color: #a7bbc8; font-size: 13px; font-weight: 600; }
+.map-navigation { gap: 10px; }
+.map-navigation .button { min-height: 48px; padding: 10px 15px; font-size: 15px; }
+.map-navigation .voyage-entry { background: #22394a; color: #c9e0d6; border: 1px solid #4c6979; box-shadow: none; }
+.map-navigation .voyage-entry span { color: #b3c9cf; font-size: 13px; }
+.map-heading { padding: 24px 0 22px; }
+.map-heading h1 { font-size: 36px; letter-spacing: .02em; }
+.map-heading p { margin-top: 8px; font-size: 17px; }
+.lit-total { padding: 11px 16px; gap: 9px; }
+.lit-total strong { font-size: 25px; }
+.lit-total > span { font-size: 16px; }
+.planet-route { gap: 30px; }
+.route-arrow { right: -27px; }
+.map-page .planet-card { min-height: 350px; height: auto; padding: 18px; border-radius: 24px; }
+.map-page .planet-illustration { height: 164px; }
+.map-page .planet-illustration > svg { max-height: 164px; }
+.planet-card h2 { font-size: 23px; }
+.planet-activity { margin-top: 7px; }
+.planet-action { margin-top: 16px; min-height: 54px; }
+.status-completed .planet-action { background: #294d43; color: #c4eccb; border: 1px solid #80b18d; box-shadow: none; }
+.map-practice-entry { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-top: 20px; padding: 15px 19px; border: 1px solid #425e6b; border-radius: 17px; background: #1b3344; }
+.map-practice-entry > div { display: flex; gap: 12px; align-items: center; color: #c2d7d3; font-size: 17px; }
+.map-practice-entry .button { min-height: 48px; font-size: 16px; }
+.mission-brief { display: flex; align-items: center; gap: 14px; padding: 4px 18px 4px 8px; margin: 0 0 16px; border: 1px solid #587982; border-radius: 16px; background: #233d49; min-width: 0; }
+.mission-brief > svg { flex: 0 0 100px; width: 100px; height: 64px; }
+.mission-brief > div { min-width: 0; }
+.mission-brief span { display: flex; align-items: center; gap: 7px; font-size: 14px; color: #f3d795; font-weight: 800; }
+.mission-brief p { font-size: 16px; color: #dae9df; margin-top: 4px; line-height: 1.45; }
+.mission-brief.installed { background: #274b43; border-color: #8dbf9a; }
+.activity-heading { padding: 26px 0 22px; }
+.activity-heading h1 { font-size: 32px; }
+.activity-heading p { margin-top: 8px; font-size: 17px; }
+.classroom { padding: 25px; gap: 24px; border-radius: 24px; grid-template-columns: 190px minmax(0, 1fr); }
+.letter-tile { width: 180px; height: 224px; }
+.large-letter { font-size: 132px; }
+.word-card { min-height: 262px; padding: 22px 10px 16px; }
+.word-card .word-art { height: 142px; }
+.word-spelling { font-size: 29px; }
+.word-meaning { font-size: 17px; }
+.classroom .playing { outline-offset: 2px; }
+.activity-controls { margin-top: 22px; }
+.blend-listening { display: flex; gap: 12px; align-items: center; justify-content: center; }
+.blend-listening .button { min-height: 50px; font-size: 18px; padding: 10px 18px; }
+.blend-model-button { background: #e2eadb; color: #496445; border: 1px solid #b6c9a7; }
+.crafting-board { padding: 24px; min-height: 330px; }
+.word-slots { margin: 18px 0 6px; gap: 13px; }
+.letter-slot { width: 78px; height: 85px; font-size: 46px; }
+.game-feedback { min-height: 52px; font-size: 19px; }
+.letter-bank { gap: 16px; flex-wrap: wrap; justify-content: center; }
+.letter-option { width: 72px; height: 72px; font-size: 44px; }
+.blend-model { width: min(100%, 560px); margin: 14px 0 0; padding: 8px 14px; border: 1px solid #c8d2b9; border-radius: 14px; background: #e8ecdf; text-align: center; }
+.blend-model > span { font-size: 13px; color: #64765a; }
+.blend-model > div { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 3px; }
+.blend-model button { min-width: 48px; min-height: 48px; padding: 3px 9px; border: 1px solid #afc3a0; border-radius: 9px; color: #3b643f; background: #f8faef; }
+.blend-model button b { font-size: 24px; }
+.blend-model button > span { display: flex; gap: 4px; justify-content: center; height: 6px; }
+.blend-model i { width: 4px; height: 4px; border-radius: 50%; background: #668f62; }
+.blend-model .active { background: #c6e0b8; outline: 2px solid #64905e; }
+.speaking-board { position: relative; padding: 22px; min-height: 340px; border-radius: 24px; }
+.speaking-host { position: absolute; left: 22px; top: 20px; width: 80px; }
+.speaking-host > svg { width: 100%; height: 95px; }
+.spoken-question { max-width: calc(100% - 160px); font-size: 28px; line-height: 1.4; }
+.speaking-board > .word-art { height: 155px; }
+.speaking-board .model-answer { min-height: 50px; }
+.speaking-board .temporary-recording { margin-top: 12px; }
+.celebration-learning { margin: 16px 0; padding: 13px 16px; background: #e4ebd8; border-radius: 13px; text-align: center; }
+.celebration-learning > span { display: block; font-size: 14px; color: #64745b; }
+.celebration-learning strong { display: block; font-size: 21px; line-height: 1.5; margin-top: 4px; color: #39593a; }
+.dialog .mission-brief { padding-right: 10px; }
+.dialog .mission-brief p { font-size: 15px; }
+.parent-learning-card { border: 1px solid #bccdb2; background: #eaf0df; border-radius: 15px; padding: 18px; margin-bottom: 18px; }
+.parent-learning-card .eyebrow { color: #5b7552; }
+.parent-learning-card h3 { font-size: 21px; margin: 6px 0 14px; color: #355638; }
+.parent-learning-card dl { margin: 0; display: grid; gap: 10px; }
+.parent-learning-card dl > div { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 8px; }
+.parent-learning-card dt { font-size: 14px; color: #5d7354; }
+.parent-learning-card dd { margin: 0; font-size: 16px; line-height: 1.55; color: #355638; overflow-wrap: anywhere; }
+.parent-learning-card p { font-size: 14px; line-height: 1.75; margin-top: 12px; color: #5b6f52; }
+.review-scene-item .review-object-word { pointer-events: auto; }
+.parent-recent { border-top: 1px solid #c0ceb3; padding-top: 13px; margin-top: 14px; }
+.parent-recent > b { font-size: 15px; }
+.parent-recent > div { display: flex; justify-content: space-between; gap: 15px; margin-top: 10px; font-size: 15px; }
+
+/* Travel action stays above the complete, browsable atlas. */
+.voyage-page { max-width: 1160px; margin: auto; }
+.voyage-page .activity-heading { margin: 0; padding: 24px 0 20px; }
+.fuel-meter { padding: 10px 16px; border: 1px solid #4a6268; }
+.fuel-meter strong { font-size: 27px; }
+.flight-console { display: grid; grid-template-columns: 160px minmax(0, 1fr); align-items: center; gap: 24px; padding: 22px 28px; background: #244247; border: 1px solid #7aab9b; border-radius: 24px; box-shadow: inset 0 1px #f0f5df22; }
+.console-ship { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.console-ship > svg { width: 130px; height: 110px; transform: rotate(35deg); }
+.console-ship > span { font-size: 14px; color: #c4dcd2; }
+.console-task { min-width: 0; }
+.console-task > .eyebrow { color: #b6d6c6; margin: 0; }
+.flight-console .voyage-action { padding: 8px 0; min-height: 74px; gap: 18px; }
+.flight-console .voyage-action h2 { font-size: 26px; margin: 0 0 5px; }
+.flight-console .voyage-action p { font-size: 16px; line-height: 1.5; }
+.flight-console .voyage-action > .button { flex-shrink: 0; }
+.console-budget { display: flex; align-items: center; gap: 13px; font-size: 14px; color: #c4dbd1; margin-top: 8px; }
+.console-budget > progress { width: min(160px, 25%); height: 10px; accent-color: #bee3ad; }
+.console-budget > strong { color: #f3db9c; }
+.console-practice { min-height: 48px; padding: 8px 14px; font-size: 15px; margin-top: 6px; }
+.console-navigation { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #c5dfd0; margin-top: 8px; }
+.console-navigation > svg { width: 62px; height: 38px; }
+.future-destination { font-size: 14px; line-height: 1.7; color: #b3c8d2; margin: 14px 3px 0; }
+.universe-overview { margin-top: 24px; padding: 22px; }
+.universe-heading h2 { font-size: 24px; }
+.universe-heading p { font-size: 14px; margin: 6px 0 16px; }
+.universe-heading > .button { min-height: 48px; padding: 9px 14px; font-size: 15px; }
+.region-picker { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.region-picker button { min-height: 58px; padding: 8px 9px; border-radius: 12px; font-size: 15px; line-height: 1.35; }
+.region-picker button > span { margin-right: 5px; }
+.region-picker small { font-size: 12px; margin-top: 4px; }
+.region-title { margin: 18px 0 12px; font-size: 20px; }
+.region-title span { font-size: 15px; }
+.voyage-bottom { margin-top: 18px; }
+.console-ship.flying > svg { animation: cockpit-depart 1.2s ease-in-out; }
+@keyframes cockpit-depart { 0% { transform: translate(-15px, 10px) rotate(35deg); opacity: .3; } 50% { opacity: 1; } 100% { transform: translate(15px, -10px) rotate(35deg); opacity: .3; } }
+
+/* Short practice records a parent's observation, separate from lesson completion. */
+.practice-page { max-width: 1060px; margin: auto; }
+.practice-board { display: flex; align-items: center; flex-direction: column; padding: 28px; border-radius: 25px; background: var(--cream); color: var(--ink); min-height: 330px; }
+.practice-prompt { font-size: 17px; color: #65775c; }
+.practice-word { margin: 22px 0 4px; line-height: 1.15; font-size: clamp(72px, 9vw, 112px); font-weight: 900; letter-spacing: .04em; color: #3f6943; outline: none; }
+.practice-word.phrase { font-size: clamp(44px, 7vw, 86px); letter-spacing: .02em; }
+.practice-meaning { font-size: 17px; margin-bottom: 20px; min-height: 26px; color: #687b5d; }
+.practice-hint { min-height: 50px; color: #4c6744; background: #e0ead5; border: 1px solid #b0c49f; font-size: 18px; }
+.practice-observation { margin-top: 19px; }
+.practice-observation > p { font-size: 14px; color: #bacfd1; margin-bottom: 10px; }
+.practice-observation > div { display: flex; gap: 12px; }
+.practice-observation .button { flex: 1; padding: 12px; font-size: 17px; }
+.practice-summary { display: grid; grid-template-columns: 160px minmax(0, 1fr); align-items: center; gap: 26px; padding: 30px; background: var(--cream); color: var(--ink); border-radius: 24px; }
+.practice-robot svg { width: 100%; height: 190px; }
+.practice-results { display: grid; gap: 14px; }
+.practice-results > div { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 17px; border-radius: 12px; background: #e2ecd9; }
+.practice-results strong { font-size: 30px; }
+.practice-results span { display: flex; align-items: center; gap: 6px; font-size: 16px; }
+.practice-summary > p { grid-column: 1 / -1; color: #67785b; font-size: 16px; text-align: center; }
+.backup-controls { margin-top: 20px; border-top: 1px solid #c5d0ba; padding-top: 17px; }
+.backup-controls h3 { font-size: 18px; margin: 0 0 10px; }
+.backup-controls p { font-size: 14px; line-height: 1.7; color: #65775a; margin: 10px 0; }
+.backup-buttons { display: flex; flex-wrap: wrap; gap: 9px; }
+.backup-buttons .button { min-height: 48px; padding: 10px 14px; font-size: 15px; }
+.backup-preview { background: #e5ebda; border: 1px solid #b9c9a9; border-radius: 12px; padding: 13px; margin-top: 12px; }
+.backup-preview dl { margin: 10px 0; display: flex; justify-content: space-between; gap: 10px; }
+.backup-preview dt { font-size: 13px; color: #66775c; }
+.backup-preview dd { font-size: 19px; margin: 4px 0; }
+.backup-error { color: #9a493d !important; }
+.audio-review-tools { margin-top: 14px; }
+.audio-review-tools summary { min-height: 48px; padding: 13px 4px; cursor: pointer; font-size: 16px; }
+.audio-review-tools .button { min-height: 48px; font-size: 15px; }
+
+@media (min-width: 601px) and (max-height: 790px) {
+  .topbar { height: 72px; }
+  .activity-heading { padding: 20px 0 16px; }
+  .activity-heading h1 { font-size: 29px; }
+  .map-heading { padding: 18px 0; }
+  .map-heading h1 { font-size: 31px; }
+  .map-page .planet-card { min-height: 310px; padding: 16px; }
+  .map-page .planet-illustration { height: 130px; }
+  .map-page .planet-illustration > svg { max-height: 130px; }
+  .map-page .planet-number { width: 28px; height: 28px; font-size: 15px; }
+  .map-page .planet-card h2 { font-size: 21px; }
+  .map-page .planet-activity { font-size: 16px; }
+  .map-page .planet-action { min-height: 48px; margin-top: 12px; }
+  .classroom { padding: 20px; }
+  .word-card { min-height: 240px; }
+  .word-card .word-art { height: 125px; }
+  .crafting-board { padding: 20px; min-height: 310px; }
+  .game-page .activity-heading { padding: 16px 0 12px; }
+  .game-page .activity-heading p { font-size: 16px; line-height: 1.4; margin-top: 6px; }
+  .game-page .mission-brief { margin-bottom: 12px; }
+  .game-page .mission-brief > svg { height: 52px; }
+  .game-page .crafting-board { padding: 18px; }
+  .game-page .blend-model { margin-top: 10px; padding: 6px 14px; }
+  .game-page .blend-model > span { font-size: 12px; line-height: 1.2; }
+  .game-page .word-slots { margin-top: 14px; }
+  .game-page .letter-slot { width: 74px; height: 78px; }
+  .game-page .letter-option { width: 68px; height: 68px; font-size: 42px; }
+  .activity-controls { margin-top: 18px; }
+  .speaking-board { min-height: 310px; }
+  .speaking-board > .word-art { height: 130px; }
+}
+@media (min-width: 801px) and (max-height: 850px) {
+  .review-page .activity-heading { padding: 14px 0 12px; }
+  .review-page .activity-heading h1 { font-size: 28px; }
+  .review-page .activity-heading p { font-size: 16px; line-height: 1.4; margin-top: 6px; }
+  .review-page .review-heading b { font-size: 21px; line-height: 1.2; }
+  .review-page .activity-controls { margin-top: 16px; }
+  .review-page .review-feedback { min-height: 36px; font-size: 16px; }
+  .review-scan-toolbar { margin-bottom: 8px; }
+  .review-scan-toolbar .button { min-height: 48px; padding: 9px 18px; }
+  .review-scan-page .review-scene { aspect-ratio: auto; height: clamp(300px, 40svh, 330px); min-height: 0; }
+  .review-scan-page .review-scene-item { --item-size: 76px; }
+  .review-scan-page .review-scene-name { top: auto; bottom: 8px; padding: 6px 10px; font-size: 14px; }
+  .review-placement-page .review-scene { aspect-ratio: auto; height: clamp(270px, 36svh, 310px); min-height: 0; }
+  .review-placement-page .review-scene-item { --item-size: 88px; }
+  .review-placement-page .review-scene-item.large { --item-size: 104px; }
+  .review-placement-page .review-scene-item.small { --item-size: 74px; }
+  .review-placement-page .review-scene-name { left: 50%; top: 8px; transform: translateX(-50%); padding: 5px 9px; font-size: 13px; }
+  .review-placement-page .review-word-tray { margin-top: 12px; padding: 11px 16px 14px; }
+  .review-placement-page .review-tray-heading { margin-bottom: 8px; font-size: 14px; }
+  .review-placement-page .review-word-options { min-height: 60px; }
+  .review-placement-page .review-word-chip { min-height: 60px; }
+  .review-speaking-page .review-scene { aspect-ratio: auto; min-height: 390px; height: 390px; }
+  .review-speaking-page .review-scene-name { display: none; }
+  .review-speaking-page .review-dialogue-panel { min-height: 390px; padding: 18px; gap: 10px; }
+  .review-speaking-page .review-dialogue-panel > .robot { width: 80px; height: 95px; }
+}
+@media (max-width: 1000px) and (min-width: 601px) {
+  .classroom { grid-template-columns: 150px minmax(0, 1fr); gap: 18px; }
+  .letter-tile { width: 145px; height: 200px; }
+  .large-letter { font-size: 115px; }
+  .word-spelling { font-size: 25px; }
+  .word-meaning { font-size: 15px; }
+  .region-picker { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .flight-console { grid-template-columns: 120px minmax(0, 1fr); padding: 20px; gap: 16px; }
+  .console-ship > svg { width: 105px; }
+}
+@media (max-width: 600px) {
+  .topbar { height: 68px; gap: 9px; }
+  .header-actions { flex-shrink: 0; }
+  .icon-button { flex-shrink: 0; min-width: 48px; }
+  .back-button { min-width: 48px; flex-shrink: 0; justify-content: center; padding-right: 0; }
+  .parent-button { flex-shrink: 0; white-space: nowrap; }
+  .preview-session .parent-button { padding: 0 9px; gap: 5px; }
+  .preview-session .parent-button span { display: inline; font-size: 12px; }
+  .course-banner { padding-top: 14px; gap: 12px; }
+  .course-context { font-size: 15px; }
+  .course-context small { font-size: 12px; }
+  .map-navigation { width: 100%; justify-content: space-between; gap: 8px; }
+  .map-navigation .button { font-size: 14px; padding: 8px 11px; }
+  .map-navigation .voyage-entry span { font-size: 12px; }
+  .map-heading { padding: 22px 0 17px; align-items: flex-start; gap: 10px; }
+  .map-heading h1 { font-size: 25px; }
+  .map-heading p { font-size: 14px; max-width: 210px; }
+  .lit-total { padding: 8px 9px; gap: 4px; flex-wrap: wrap; justify-content: center; width: 74px; }
+  .lit-total svg { width: 15px; }
+  .lit-total strong { font-size: 20px; letter-spacing: 0; }
+  .lit-total > span { font-size: 12px; }
+  .planet-route { gap: 10px; }
+  .map-page .planet-card { padding: 10px 5px; min-height: 256px; border-radius: 17px; }
+  .planet-card-top { gap: 3px; flex-direction: column; }
+  .planet-number { width: 28px; height: 28px; font-size: 14px; }
+  .planet-status { min-height: 21px; font-size: 11px; gap: 3px; }
+  .planet-status svg { width: 13px; }
+  .map-page .planet-illustration { height: 89px; }
+  .planet-card h2 { font-size: 15px; white-space: normal; }
+  .planet-activity { font-size: 13px; margin-top: 6px; }
+  .planet-action { font-size: 13px; padding: 8px 2px; min-height: 48px; margin-top: 12px; gap: 4px; }
+  .planet-action svg { width: 14px; }
+  .status-locked .planet-action { font-size: 11px; line-height: 1.45; padding: 6px 1px; }
+  .planet-lit-check { width: 28px; height: 28px; right: 1px; bottom: 1px; border-width: 2px; }
+  .planet-lit-check svg { width: 18px; }
+  .route-arrow { width: 12px; right: -11px; }
+  .map-practice-entry { margin-top: 15px; padding: 11px; gap: 7px; }
+  .map-practice-entry > div { font-size: 13px; gap: 6px; }
+  .map-practice-entry .button { font-size: 14px; padding: 8px 10px; }
+  .mission-brief { gap: 5px; padding: 5px 9px 5px 0; margin-bottom: 13px; }
+  .mission-brief > svg { width: 75px; height: 60px; flex-basis: 75px; }
+  .mission-brief span { font-size: 12px; }
+  .mission-brief p { font-size: 13px; }
+  .activity-heading { padding: 22px 0 17px; gap: 10px; }
+  .activity-heading h1 { font-size: 25px; }
+  .activity-heading p { font-size: 14px; }
+  .classroom { padding: 18px 12px; grid-template-columns: 1fr; gap: 21px; }
+  .letter-tile { width: 145px; height: 160px; margin: auto; }
+  .large-letter { font-size: 100px; }
+  .letter-sound { margin-top: 0; font-size: 21px; }
+  .word-grid { gap: 7px; }
+  .word-card { min-height: 190px; padding: 27px 4px 12px; }
+  .word-card .word-art { height: 87px; }
+  .word-spelling { font-size: 20px; overflow-wrap: anywhere; }
+  .word-meaning { font-size: 12px; text-align: center; }
+  .word-meaning .word-ipa { display: block; font-size: 12px; }
+  .word-speaker { width: 18px; right: 7px; top: 7px; }
+  .blend-listening { gap: 8px; }
+  .blend-listening .button { font-size: 15px; padding: 9px 12px; }
+  .blend-listening svg { width: 19px; }
+  .crafting-board { padding: 20px 10px; min-height: 320px; }
+  .word-slots { gap: 8px; margin-top: 21px; }
+  .letter-slot { width: 57px; height: 70px; font-size: 36px; }
+  .letter-bank { gap: 10px; }
+  .letter-option { width: 56px; height: 62px; font-size: 35px; }
+  .blend-model { padding: 8px 4px; }
+  .blend-model > div { gap: 4px; }
+  .blend-model button { padding: 4px 5px; min-width: 48px; min-height: 48px; }
+  .blend-model button b { font-size: 22px; }
+  .blend-model > div > svg { width: 18px; flex-shrink: 0; }
+  .game-feedback { font-size: 15px; }
+  .speaking-host { width: 49px; left: 10px; top: 13px; }
+  .speaking-host > svg { height: 67px; }
+  .speaking-board { padding: 22px 12px; }
+  .spoken-question { max-width: calc(100% - 70px); margin-left: 48px; font-size: 21px; padding: 9px 12px; }
+  .spoken-question svg { width: 21px; flex-shrink: 0; }
+  .speaking-board > .word-art { width: 100%; max-width: 260px; height: 175px; }
+  .practice-board { min-height: 310px; padding: 24px 14px; }
+  .practice-prompt { font-size: 15px; }
+  .practice-word { font-size: 83px; margin-top: 33px; }
+  .practice-word.phrase { font-size: 51px; }
+  .practice-observation > div { gap: 8px; flex-wrap: wrap; }
+  .practice-observation .button { min-height: 52px; font-size: 14px; padding: 10px 7px; gap: 4px; }
+  .practice-observation .button svg { width: 17px; }
+  .practice-summary { grid-template-columns: 1fr; padding: 20px; gap: 14px; }
+  .practice-robot svg { height: 100px; }
+  .practice-results strong { font-size: 25px; }
+  .practice-results span { font-size: 14px; }
+  .practice-page .activity-controls .button { font-size: 14px; padding: 10px 12px; }
+  .voyage-page .activity-heading { padding: 21px 0 18px; align-items: center; }
+  .fuel-meter { padding: 9px 11px; gap: 6px; flex-wrap: wrap; justify-content: center; max-width: 92px; }
+  .fuel-meter svg { width: 20px; }
+  .fuel-meter strong { font-size: 23px; }
+  .fuel-meter span { font-size: 12px; }
+  .flight-console { grid-template-columns: 63px minmax(0, 1fr); align-items: start; gap: 12px; padding: 17px 14px; border-radius: 19px; }
+  .console-ship > svg { width: 66px; height: 82px; }
+  .console-ship > span { font-size: 11px; text-align: center; line-height: 1.5; }
+  .console-task .eyebrow { font-size: 12px; }
+  .flight-console .voyage-action { flex-direction: column; align-items: stretch; gap: 13px; padding: 6px 0; min-height: 0; }
+  .flight-console .voyage-action h2 { font-size: 21px; }
+  .flight-console .voyage-action p { font-size: 14px; }
+  .flight-console .voyage-action .button { min-height: 52px; font-size: 16px; padding: 11px; }
+  .console-budget { font-size: 12px; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+  .console-budget > progress { width: 70px; }
+  .console-practice { font-size: 13px; padding: 8px; }
+  .future-destination { font-size: 13px; }
+  .universe-overview { padding: 14px; margin-top: 19px; }
+  .universe-heading h2 { font-size: 21px; }
+  .universe-heading p { font-size: 12px; }
+  .universe-heading > .button { font-size: 12px; padding: 8px 10px; gap: 5px; }
+  .region-picker { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .region-picker button { min-height: 54px; font-size: 14px; }
+  .region-title { font-size: 17px; }
+  .region-title span { font-size: 13px; }
+  .universe-node strong { font-size: 14px; }
+  .universe-node > span { font-size: 12px; }
+  .universe-body > svg { height: 110px; }
+  .review-page .review-scene { min-height: 0; height: auto; aspect-ratio: auto; padding: 44px 10px 14px; }
+  .review-page .review-scene-items { position: relative; inset: auto; height: auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 6px; }
+  .review-page .scene-many .review-scene-items { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .review-scan-page .scene-many .review-scene-items { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .review-page .review-scene-item { position: relative; inset: auto; transform: none; width: 100%; height: auto; min-width: 0; min-height: 138px; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+  .review-scan-page .review-scene-item { min-height: 110px; }
+  .review-page .review-scene-item .word-art { width: 100%; height: 64px; flex-shrink: 0; }
+  .review-page .review-object-word { position: static; transform: none; width: 100%; min-height: 44px; padding: 4px; gap: 3px; border-radius: 8px; white-space: normal; }
+  .review-page .review-object-word > svg { width: 12px; height: 12px; flex-shrink: 0; }
+  .review-page .review-object-word > span { min-width: 0; }
+  .review-page .review-object-word small { white-space: normal; overflow-wrap: anywhere; line-height: 1.25; }
+}
+@keyframes review-grid-hint { 50% { transform: scale(1.03); } }
+@media (max-width: 600px) and (prefers-reduced-motion: no-preference) {
+  .review-page .review-scene-item.highlighted { animation: review-grid-hint 1.2s ease-in-out infinite; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .console-ship.flying > svg { animation: none; }
+}

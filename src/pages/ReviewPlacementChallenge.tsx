@@ -91,6 +91,8 @@ export function ReviewPlacementChallenge({
     word: string,
   ) => {
     if (event.currentTarget.disabled) return;
+    // Suppress only the synthetic click following a drag, never a new gesture.
+    ignoreClick.current = false;
     event.currentTarget.setPointerCapture(event.pointerId);
     drag.current = {
       word,
@@ -146,7 +148,7 @@ export function ReviewPlacementChallenge({
       : undefined;
 
   return (
-    <main className="review-page">
+    <main className="review-page review-placement-page">
       <div className="activity-heading review-heading">
         <div>
           <h1>把单词放回场景</h1>
@@ -230,13 +232,15 @@ export function ReviewPlacementChallenge({
                   onPointerUp={onPointerUp}
                   onPointerCancel={() => {
                     drag.current = null;
+                    ignoreClick.current = false;
                     setDragging(null);
                   }}
-                  onClick={() => {
-                    if (ignoreClick.current) {
+                  onClick={(event) => {
+                    if (ignoreClick.current && event.detail > 0) {
                       ignoreClick.current = false;
                       return;
                     }
+                    ignoreClick.current = false;
                     onPlay(lesson.blendRounds[roundIndex].audio);
                     setSelectedWord(active ? null : word);
                     setFeedback(

@@ -33,6 +33,7 @@ import {
   planetStatus,
   selectCourseForPreview,
   type Progress,
+  updateBlendDraft,
 } from "./progress";
 function finishForest(): Progress {
   let state = { ...initialProgress };
@@ -40,6 +41,19 @@ function finishForest(): Progress {
   return state;
 }
 describe("saved progress and planet route", () => {
+  it("applies fast consecutive tile choices to the latest draft without exceeding the tile supply", () => {
+    let state = openPlanet(finishForest(), "dunes");
+    state = updateBlendDraft(state, (draft) => [...draft, "a"]);
+    state = updateBlendDraft(state, (draft) => [...draft, "t"]);
+    expect(state.blendDraft).toEqual(["a", "t"]);
+    expect(checkBlend(state).blendSolved).toBe(true);
+    expect(updateBlendDraft(state, (draft) => [...draft, "a"])).toBe(state);
+    expect(updateBlendDraft(checkBlend(state), [])).toEqual(checkBlend(state));
+    state = updateBlendDraft(state, (draft) => draft.filter((_, index) => index !== 0));
+    expect(state.blendDraft).toEqual(["t"]);
+    expect(parseProgress(JSON.stringify(state)).blendDraft).toEqual(["t"]);
+    expect(updateBlendDraft(initialProgress, ["a"])).toBe(initialProgress);
+  });
   it("recovers from missing, corrupt and unsupported versions", () => {
     for (const raw of [
       null,

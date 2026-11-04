@@ -3,12 +3,17 @@ import { Check, Volume2 } from "lucide-react";
 import { WordArt } from "../components/Art";
 import { TemporaryRecording } from "../components/TemporaryRecording";
 import type { Lesson } from "../data/lesson";
+import type { Progress } from "../lib/progress";
+import { MissionBrief } from "../components/MissionBrief";
+import { Robot } from "../components/Art";
 export function SpeakingChallenge({
   speakingTask,
+  progress,
   onPlay,
   onComplete,
 }: {
   speakingTask: Lesson["speakingTask"];
+  progress: Progress;
   onPlay: (src: string) => void;
   onComplete: () => void;
 }) {
@@ -21,7 +26,9 @@ export function SpeakingChallenge({
           <p>听问题，看看图，再开口。</p>
         </div>
       </div>
+      <MissionBrief progress={progress} />
       <section className="speaking-board" aria-label="亲子口语练习">
+        <div className="speaking-host" aria-hidden="true"><Robot /></div>
         <button
           className="spoken-question"
           onClick={() => onPlay(speakingTask.questionAudio)}

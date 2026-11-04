@@ -2,18 +2,20 @@ import { initialSpace, restoreSpace, type SpaceProgress } from "./space";
 import { parseDialogue, type DialogueState } from "./dialogue";
 import { lessons, type PlanetId } from "../data/lesson";
 import { reviewForLesson } from "../data/reviews";
+import { parsePractice, type PracticeState } from "./practice";
 // Retain the original key across all data migrations.
 export const STORAGE_KEY = "tom-phonics-progress-v1";
 export type Progress = {
   version: 4;
   space: SpaceProgress;
   dialogue?: DialogueState;
+  practice?: PracticeState;
   lessonIndex: number;
   records: Record<string, LessonProgress>;
   step: number;
   completed: number[];
   volume: number;
-  page: "map" | "space" | "courses" | "lesson" | "blending" | "speaking";
+  page: "map" | "space" | "courses" | "lesson" | "blending" | "speaking" | "practice";
   blendRound: number;
   blendCompleted: number[];
   blendDraft: string[];
@@ -336,6 +338,7 @@ export function parseProgress(raw: string | null): Progress {
       "lesson",
       "blending",
       "speaking",
+      "practice",
     ].includes(v.page)
       ? v.page
       : "map";
@@ -347,6 +350,8 @@ export function parseProgress(raw: string | null): Progress {
     )
       state.page = "map";
     state.space = restoreSpace(v.version === 4 ? v.space : undefined, state);
+    if (v.version === 4 && v.practice) state.practice = parsePractice(v.practice, state);
+    if (state.page === "practice" && !state.practice?.session) state.page = "map";
     return state;
   } catch {
     return { ...initialProgress };
@@ -378,6 +383,18 @@ export function checkBlend(progress: Progress): Progress {
       ...new Set([...progress.blendCompleted, progress.blendRound]),
     ].sort((a, b) => a - b),
   };
+}
+export type BlendDraftChange = string[] | ((current: string[]) => string[]);
+export function updateBlendDraft(progress: Progress, change: BlendDraftChange): Progress {
+  if (progress.page !== "blending" || !forestDone(progress) || progress.blendSolved || reviewForLesson(lessons[progress.lessonIndex].id)) return progress;
+  const draft = typeof change === "function" ? change([...progress.blendDraft]) : change;
+  const pool = [...lessons[progress.lessonIndex].blendRounds[progress.blendRound].letters];
+  for (const tile of draft) {
+    const index = pool.indexOf(tile);
+    if (index < 0) return progress;
+    pool.splice(index, 1);
+  }
+  return { ...progress, blendDraft: [...draft], blendSolved: false };
 }
 export function openPlanet(progress: Progress, id: PlanetId): Progress {
   if (planetStatus(progress, id) === "locked") return progress;

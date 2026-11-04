@@ -23,7 +23,7 @@ export function ReviewDialogueChallenge({
   const showReply = revealedStep === step;
 
   return (
-    <main className="review-page">
+    <main className="review-page review-speaking-page">
       <div className="activity-heading review-heading">
         <div>
           <h1>和机器人检查场景</h1>
