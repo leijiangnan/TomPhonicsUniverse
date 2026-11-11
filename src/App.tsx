@@ -78,6 +78,9 @@ export default function App() {
     progress: savedProgress,
     setProgress: saveProgress,
     saveError,
+    confirmedProgress,
+    ready,
+    retry,
   } = useProgress();
   const [previewEnabled, setPreviewEnabled] = useState(false);
   const [previewProgress, setPreviewProgress] = useState<Progress | null>(null);
@@ -297,13 +300,13 @@ export default function App() {
     const expected = progress.step;
     const wasDone = forestDone(progress);
     let finished = false;
-    await setProgress((p) => {
+    const saved = await setProgress((p) => {
       if (p.page !== "lesson" || p.lessonIndex !== progress.lessonIndex || p.step !== expected) return p;
       const next = review ? completeReviewSound(p) : completeStep(p);
       finished = expected === STEP_COUNT - 1 && forestDone(next);
       return finished ? { ...next, page: "map" } : next;
     });
-    if (finished) celebrate("forest", !previewEnabled && !wasDone ? 30 : 0);
+    if (saved && finished) celebrate("forest", !previewEnabled && !wasDone ? 30 : 0);
   };
   const changeStep = (n: number) => {
     setProgress((p) => p.page === "lesson" && p.lessonIndex === progress.lessonIndex && n >= 0 && n < STEP_COUNT &&
@@ -318,14 +321,14 @@ export default function App() {
     const context = taskContext.current;
     const wasDone = dunesDone(progress);
     let attempted = false, solved = false;
-    await setProgress((p) => {
+    const saved = await setProgress((p) => {
       if (p.page !== "blending" || p.lessonIndex !== progress.lessonIndex || p.blendRound !== progress.blendRound || p.blendSolved) return p;
       attempted = true;
       const next = checkBlend(p);
       solved = next !== p;
       return next;
     });
-    if (!attempted || context !== taskContext.current) return null;
+    if (!saved || !attempted || context !== taskContext.current) return null;
     if (solved && progress.blendRound === blendRounds.length - 1)
       dunesFirstCompletion.current = !wasDone;
     setFeedback(solved ? "" : "再听一次，换一换方块。");
@@ -335,7 +338,7 @@ export default function App() {
   };
   const nextRound = async () => {
     let finished = false;
-    await setProgress((p) => {
+    const saved = await setProgress((p) => {
       if (p.page !== "blending" || p.lessonIndex !== progress.lessonIndex || p.blendRound !== progress.blendRound) return p;
       if (review) {
         const batchDone = review.placementBatches[p.blendRound].every((word) => p.reviewPlacements.includes(lesson.blendRounds.findIndex((round) => round.word === word)));
@@ -347,7 +350,7 @@ export default function App() {
       finished = p.blendRound === blendRounds.length - 1 && dunesDone(p);
       return finished ? { ...p, page: "map" } : { ...p, blendRound: p.blendRound + 1, blendDraft: [], blendSolved: false };
     });
-    if (finished) {
+    if (saved && finished) {
       const gain = previewEnabled ? 0 : dunesFirstCompletion.current === null ? null : dunesFirstCompletion.current ? 20 : 0;
       celebrate("dunes", gain);
     }
@@ -355,7 +358,7 @@ export default function App() {
   const finishSpeaking = async () => {
     const wasDone = progress.speakingCompleted;
     let finished = false;
-    await setProgress((p) => {
+    const saved = await setProgress((p) => {
       if (p.page !== "speaking" || p.lessonIndex !== progress.lessonIndex || !dunesDone(p)) return p;
       if (review) {
         if (p.reviewDialogueStep !== progress.reviewDialogueStep) return p;
@@ -367,7 +370,7 @@ export default function App() {
       finished = true;
       return { ...p, speakingCompleted: true, page: "map" };
     });
-    if (finished) celebrate("crystal", !previewEnabled && !wasDone ? 40 : 0);
+    if (saved && finished) celebrate("crystal", !previewEnabled && !wasDone ? 40 : 0);
   };
   const planet = planets.find((p) => p.id === selectedPlanet)!;
   const planetIndex = planets.findIndex((p) => p.id === selectedPlanet);
@@ -388,6 +391,11 @@ export default function App() {
       : progress.page === "blending"
         ? planets[1].name
         : planets[2].name;
+  if (!ready) return <div className="app-shell"><main className="startup-panel" aria-live="polite">
+    <h1>连接学习存档</h1>
+    <p>{saveError || "正在读取电脑上的学习进度…"}</p>
+    {saveError && <button className="button primary" onClick={() => void retry()}>重新连接</button>}
+  </main></div>;
   return (
     <div className={`app-shell${previewEnabled ? " preview-session" : ""}`} ref={appShell}
       data-ambient-motion={atmosphereRunning ? "running" : "paused"}
@@ -748,10 +756,10 @@ export default function App() {
               <div className="modal-note">
                 <b>试听音频待人工校对</b>
                 <p>
-                  字母音含用户提供的素材，其余多为合成试听音。请家长先试听，或关闭声音后领读。学习进度保存在当前浏览器，更换设备不会自动同步。
+                  字母音含用户提供的素材，其余多为合成试听音。请家长先试听，或关闭声音后领读。学习记录统一保存在电脑后台，iPad 与电脑共用同一份进度。
                 </p>
               </div>
-              <ParentBackup progress={savedProgress} previewEnabled={previewEnabled} onImport={(imported) => saveProgress(imported, true)} />
+              <ParentBackup progress={confirmedProgress} previewEnabled={previewEnabled} onImport={(imported) => saveProgress(imported, true)} />
               <button
                 className="button primary full"
                 onClick={() => setModal(null)}

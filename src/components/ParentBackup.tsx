@@ -15,7 +15,9 @@ export function ParentBackup({ progress, previewEnabled, onImport }: {
   const [busy, setBusy] = useState(false);
   const summary = pending && backupSummary(pending);
   return <section className="backup-controls" aria-label="存档备份和素材校对">
-    <h3>本机存档备份</h3><p>导出学习、探索和复习记录。导入会替换当前存档，建议先导出备份。录音不在存档中。</p>
+    <h3>后台存档与备份</h3>
+    <p>学习、燃料、探索和复习记录统一保存在电脑后台，iPad 与电脑自动共用。电脑需保持开机并运行网站服务。录音不会上传或保存。</p>
+    <p>旧浏览器记录会在首次打开时自动转存。导出可备份后台已确认的存档；导入会替换所有设备共用的记录，建议先导出备份。</p>
     <div className="backup-buttons">
       <button className="button secondary" onClick={() => { downloadText(createBackup(progress), "tom-phonics-backup.json"); setMessage("已交给浏览器下载，请确认文件已保存。"); }}><Download size={19} />导出当前存档</button>
       <button className="button secondary" disabled={previewEnabled || busy} onClick={() => { setError(""); setMessage(""); input.current?.click(); }}><Upload size={19} />选择存档导入</button>
@@ -31,7 +33,7 @@ export function ParentBackup({ progress, previewEnabled, onImport }: {
     }} />
     {pending && summary && <div className="backup-preview" aria-label="待导入存档摘要">
       <b>请核对待导入记录</b><dl><div><dt>已完成</dt><dd>{summary.completedCourses} 课</dd></div><div><dt>正在查看</dt><dd>第 {summary.lesson} 课</dd></div><div><dt>燃料</dt><dd>{summary.fuel}</dd></div></dl>
-      <p>复习观察 {summary.observations} 条。确认后覆盖当前学习与探索记录。</p>
+      <p>复习观察 {summary.observations} 条。确认后替换电脑后台的共享存档，其他设备也会使用这份记录。</p>
       <div className="backup-buttons"><button className="button secondary" disabled={busy} onClick={() => setPending(null)}>取消导入</button><button className="button primary" disabled={previewEnabled || busy} onClick={async () => {
         setBusy(true); setError(""); setMessage("");
         try {

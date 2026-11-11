@@ -121,7 +121,7 @@ export function litCount(progress: Progress) {
     (id) => planetStatus(progress, id) === "completed",
   ).length;
 }
-function snapshot(p: Progress): LessonProgress {
+export function lessonSnapshot(p: Progress): LessonProgress {
   const {
     step,
     completed,
@@ -172,11 +172,11 @@ export function currentCourse(p: Progress) {
 
 function switchCourse(p: Progress, n: number): Progress {
   if (n === p.lessonIndex) return { ...p, page: "map" };
-  const records = { ...p.records, [lessons[p.lessonIndex].id]: snapshot(p) };
+  const records = { ...p.records, [lessons[p.lessonIndex].id]: lessonSnapshot(p) };
   delete records[lessons[n].id];
   const next: Progress = {
     ...p,
-    ...snapshot(lessonProgress(p, n)),
+    ...lessonSnapshot(lessonProgress(p, n)),
     lessonIndex: n,
     page: "map",
     records,
@@ -314,8 +314,8 @@ export function parseProgress(raw: string | null): Progress {
         v.version === 1,
       );
       if (n === requested || value)
-        state.records[lessons[n].id] = snapshot(clean);
-      if (n === 0) state = { ...state, ...snapshot(clean) };
+        state.records[lessons[n].id] = lessonSnapshot(clean);
+      if (n === 0) state = { ...state, ...lessonSnapshot(clean) };
     }
     const selected = courseUnlocked(state, requested)
       ? requested

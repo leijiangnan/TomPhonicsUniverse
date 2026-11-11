@@ -156,11 +156,6 @@ export function SpaceMap({
         <>
           <section className="flight-console" aria-label="航行控制台">
             <div className="console-rim" aria-hidden="true"><i /><i /><i /><b /></div>
-            <div className="console-ship">
-              <FlightScene destination={s.current} flying={flying} running={atmosphereRunning} />
-              <div className="console-route" aria-hidden="true"><span>地球</span><ArrowLeftRight size={16} /><span>补给空间站</span></div>
-              <span className="console-location">{flying ? "正在航行" : s.current === "earth" ? "停靠地球" : "停靠补给空间站"}</span>
-            </div>
             <div className="console-task">
               <span className="eyebrow">{s.current === "earth" ? found ? "免费回访" : "第一段旅程" : s.badge ? "你的探索收藏" : "抵达后的任务"}</span>
           <div className="voyage-action" aria-live="polite">
@@ -185,7 +180,7 @@ export function SpaceMap({
                   {found
                     ? "免费回访"
                     : balance >= STATION_COST
-                      ? "准备起飞"
+                      ? "开始航行"
                       : "去学习，获得燃料"}
                   <Rocket size={22} />
                 </button>
@@ -200,36 +195,42 @@ export function SpaceMap({
                       : "打个招呼，领取你的第一张收藏卡。"}
                   </p>
                 </div>
-                <button
-                  className="button primary"
-                  onClick={() => setVisit(true)}
-                >
-                  {s.badge ? "查看收藏卡" : "进入补给站"}
-                  <ArrowRight size={22} />
-                </button>
+                <div className="voyage-controls">
+                  <button
+                    className="button primary"
+                    disabled={busy}
+                    onClick={() => setVisit(true)}
+                  >
+                    {s.badge ? "查看收藏卡" : "进入补给站"}
+                    <ArrowRight size={22} />
+                  </button>
+                  <button
+                    className="button secondary"
+                    disabled={busy}
+                    onClick={() => void go("earth")}
+                  >
+                    免费返回地球 <Rocket size={22} />
+                  </button>
+                </div>
               </>
             )}
           </div>
               {!found && <div className="console-budget" aria-label="下一站燃料">
                 <span>首次航行 {STATION_COST} 燃料</span><progress aria-label="下一站燃料储备" value={Math.min(balance, STATION_COST)} max={STATION_COST} /><strong>{balance >= STATION_COST ? "已经备好" : `还差 ${STATION_COST - balance}`}</strong>
               </div>}
+              {found && !flying && <p className="future-destination">目前仅开放地球与补给空间站。{nextNode.name}等后续地点筹备中，燃料会保留。</p>}
               {s.current === "station" && s.badge && onPractice && <button className="button secondary console-practice" onClick={onPractice}>出发前，复习一下 <ArrowRight size={20} /></button>}
               {courseDone(progress, 2) && <div className="console-navigation"><MissionMapArt pieces={3} installed /><span>第 3 课的探险地图，已装进驾驶舱</span></div>}
             </div>
+            <div className="console-ship">
+              <FlightScene destination={s.current} flying={flying} running={atmosphereRunning} />
+              <div className="console-route" aria-hidden="true"><span>地球</span><ArrowLeftRight size={16} /><span>补给空间站</span></div>
+              <span className="console-location">{flying ? "正在航行" : s.current === "earth" ? "停靠地球" : "停靠补给空间站"}</span>
+            </div>
           </section>
-          {found && !flying && <p className="future-destination">远方目标：{nextNode.name} · 筹备中。现在可以回访补给站，继续复习。</p>}
           <UniverseOverview space={s} regionIndex={regionIndex} setRegionIndex={setRegionIndex} flying={flying} />
           <div className="voyage-bottom">
             <span>游戏航线 · 非真实比例 · 补给空间站为虚构设施</span>
-            {s.current === "station" && (
-              <button
-                className="button secondary"
-                disabled={busy || flying}
-                onClick={() => void go("earth")}
-              >
-                免费返回地球
-              </button>
-            )}
           </div>
         </>
       )}

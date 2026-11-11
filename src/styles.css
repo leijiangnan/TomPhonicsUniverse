@@ -2963,6 +2963,10 @@ input[type="range"] {
 .flight-console .voyage-action h2 { font-size: 26px; margin: 0 0 5px; }
 .flight-console .voyage-action p { font-size: 16px; line-height: 1.5; }
 .flight-console .voyage-action > .button { flex-shrink: 0; }
+.voyage-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; flex-shrink: 0; }
+.startup-panel { max-width: 620px; margin: 15vh auto; padding: 28px; text-align: center; }
+.startup-panel h1 { font-size: clamp(28px, 4vw, 40px); }
+.startup-panel p { line-height: 1.8; margin: 22px 0; }
 .console-budget { display: flex; align-items: center; gap: 13px; font-size: 14px; color: #c4dbd1; margin-top: 8px; }
 .console-budget > progress { width: min(160px, 25%); height: 10px; accent-color: #bee3ad; }
 .console-budget > strong { color: #f3db9c; }
@@ -3191,6 +3195,7 @@ input[type="range"] {
   .flight-console .voyage-action h2 { font-size: 21px; }
   .flight-console .voyage-action p { font-size: 14px; }
   .flight-console .voyage-action .button { min-height: 52px; font-size: 16px; padding: 11px; }
+  .voyage-controls { flex-direction: column; align-items: stretch; }
   .console-budget { font-size: 12px; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
   .console-budget > progress { width: 70px; }
   .console-practice { font-size: 13px; padding: 8px; }
@@ -3502,7 +3507,7 @@ main h1:focus-visible { outline: 3px solid var(--gold); outline-offset: 6px; bor
 .console-rim i:nth-child(2) { background: #f4d183; box-shadow: 0 0 7px #f7cf79; }
 .console-rim i:nth-child(3) { background: #efac85; box-shadow: 0 0 7px #edac85; }
 .console-rim b { width: 50px; height: 3px; margin-left: auto; border-radius: 3px; background: #b4e3d17a; box-shadow: 0 1px #133c40; }
-.console-task { position: relative; border-top: 1px solid #a7d9c65c; background: linear-gradient(125deg, #315950e8, #193945f5); }
+.console-task { position: relative; border-bottom: 1px solid #a7d9c65c; background: linear-gradient(125deg, #315950e8, #193945f5); }
 .console-task::before { content: ""; position: absolute; top: 0; left: 12%; width: 45%; height: 1px; background: linear-gradient(90deg, transparent, #d3ffddae, transparent); pointer-events: none; }
 .console-budget > progress { border-radius: 8px; overflow: hidden; box-shadow: 0 1px #a7d3c544, inset 0 2px 3px #0c252e; }
 .voyage-page .universe-overview {

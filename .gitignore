@@ -2,6 +2,9 @@ node_modules/
 dist/
 *.tsbuildinfo
 .DS_Store
+.data/*
+*.sqlite*
+!.data/progress.sqlite
 artifacts/*
 !artifacts/science-research/
 artifacts/science-research/*
