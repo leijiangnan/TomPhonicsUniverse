@@ -11,19 +11,21 @@ import {
 } from "./wordLife";
 
 describe("word life reward selection", () => {
-  it("rewards only hen, bug, and box, including their review phrases", () => {
-    expect(wordLifeWords).toEqual(["hen", "bug", "box"]);
-    expect(["hen", "bug", "box", "red hen", "big bug", "big box"].map(wordLifeReward)).toEqual([
-      "hen", "bug", "box", "hen", "bug", "box",
+  it("rewards lesson 1 at and sat, plus hen, bug, and box", () => {
+    expect(wordLifeWords).toEqual(["at", "sat", "hen", "bug", "box"]);
+    expect(["at", "sat", "hen", "bug", "box", "red hen", "big bug", "big box"].map(wordLifeReward)).toEqual([
+      "at", "sat", "hen", "bug", "box", "hen", "bug", "box",
     ]);
-    for (const text of ["fox", "six", "then", "buggy", "hen bug", "red", ""]) {
+    expect(wordLifeReward("sat")).toBe("sat");
+    for (const text of ["fox", "six", "then", "cat", "hat", "mat", "tap", "buggy", "at sat", "red", ""]) {
       expect(wordLifeReward(text)).toBeNull();
     }
   });
 
   it("matches the spelling targets and review phrases actually in the course", () => {
     const targets = lessons.flatMap((lesson) => lesson.blendRounds.map((round) => round.word));
-    expect(targets.filter((word) => wordLifeReward(word))).toEqual(["hen", "bug", "box", "box"]);
+    expect(targets.filter((word) => wordLifeReward(word))).toEqual(["at", "sat", "hen", "bug", "box", "sat", "box"]);
+    expect(lessons[0].blendRounds.map((round) => round.word)).toEqual(["at", "sat"]);
     expect(readingPhrases.map((phrase) => phrase.text).filter((text) => wordLifeReward(text))).toEqual([
       "red hen", "big bug", "big box",
     ]);
@@ -39,7 +41,9 @@ describe("word life reward selection", () => {
     ]) {
       expect(wordLifePresentation({ text: "big box", ...flags })).toEqual({ word: "box", presentation: "still" });
     }
-    expect(wordLifePresentation({ text: "sat", ambientMotion: true, reducedMotion: false, webgl: true })).toBeNull();
+    expect(wordLifePresentation({ text: "at", ambientMotion: true, reducedMotion: false, webgl: true }))
+      .toEqual({ word: "at", presentation: "animated" });
+    expect(wordLifePresentation({ text: "tap", ambientMotion: true, reducedMotion: false, webgl: true })).toBeNull();
   });
 
   it("keeps a blending reward on its round and a practice reward on the lesson", () => {

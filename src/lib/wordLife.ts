@@ -1,8 +1,10 @@
 /** Words that can pop into a short 3D reward after a real success. */
-export const wordLifeWords = ["hen", "bug", "box"] as const;
+export const wordLifeWords = ["at", "sat", "hen", "bug", "box"] as const;
 export type WordLifeWord = (typeof wordLifeWords)[number];
 
 export const wordLifeLabels: Record<WordLifeWord, string> = {
+  at: "在星星旁",
+  sat: "坐下的宇航员",
   hen: "母鸡",
   bug: "小虫",
   box: "盒子",

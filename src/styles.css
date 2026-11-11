@@ -3536,11 +3536,11 @@ main h1:focus-visible { outline: 3px solid var(--gold); outline-offset: 6px; bor
 dialog.word-life-dialog {
   position: fixed;
   inset: auto;
-  top: calc(88px + env(safe-area-inset-top));
-  left: 50%;
-  right: auto;
+  top: calc(168px + env(safe-area-inset-top));
+  left: auto;
+  right: max(16px, env(safe-area-inset-right));
   bottom: auto;
-  width: min(440px, calc(100vw - 28px));
+  width: min(360px, calc(100vw - 28px));
   height: auto;
   max-height: none;
   margin: 0;
@@ -3549,7 +3549,7 @@ dialog.word-life-dialog {
   overflow: visible;
   background: transparent;
   color: #f5f3e8;
-  transform: translateX(-50%);
+  transform: none;
 }
 dialog.word-life-dialog:focus { outline: none; }
 .word-life-card {
@@ -3562,7 +3562,7 @@ dialog.word-life-dialog:focus { outline: none; }
 }
 .word-life-stage {
   position: relative;
-  height: 188px;
+  height: 156px;
   overflow: hidden;
   border-radius: 16px;
   background:
@@ -3588,9 +3588,18 @@ dialog.word-life-dialog:focus { outline: none; }
 .word-life-caption b { font-size: 28px; line-height: 1.1; letter-spacing: 0.04em; }
 .word-life-caption span { color: #f3ce78; font-size: 16px; font-weight: 800; }
 .word-life-skip { min-width: 88px; flex: none; }
+@media (max-width: 720px) {
+  dialog.word-life-dialog {
+    top: auto;
+    right: 14px;
+    bottom: calc(88px + env(safe-area-inset-bottom));
+    left: 14px;
+    width: auto;
+  }
+  .word-life-stage { height: 120px; }
+}
 @media (max-height: 720px) {
-  dialog.word-life-dialog { top: calc(72px + env(safe-area-inset-top)); }
-  .word-life-stage { height: 148px; }
+  .word-life-stage { height: 120px; }
   .word-life-caption b { font-size: 24px; }
 }
 @media (prefers-reduced-motion: reduce) {

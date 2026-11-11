@@ -48,9 +48,26 @@ function BugStill() {
   );
 }
 
-/** Box reuses the lesson illustration. Hen and bug had no word drawing, so they use a still frame. */
+function AtStill() {
+  return (
+    <svg className="word-art word-life-still" viewBox="0 0 300 200" role="img" aria-label="在星星旁">
+      <ellipse cx="150" cy="172" rx="70" ry="12" fill="#102033" opacity="0.28" />
+      <path d="M78 158h70v10H78zM168 158h18v16h-18zM92 158h18v16H92z" fill="#9eb7b7" />
+      <path d="M96 78h52v48H96zM100 132h22v26h-22zM124 132h20v18h-20z" fill="#e4e9df" />
+      <path d="M104 86h36v22H104z" fill="#35596b" />
+      <path d="M110 92h22v6H110z" fill="#8ccdb9" />
+      <path d="M116 112h14v12h-14z" fill="#f3ce78" />
+      <path d="M148 96h14v28h-14z" fill="#e4e9df" />
+      <path d="M210 108 228 78l18 30-18 30Z" fill="#f3ce78" />
+      <path d="M228 92v32M212 108h32" stroke="#fff6d2" strokeWidth="4" />
+    </svg>
+  );
+}
+
+/** Box and sat reuse lesson drawings. at, hen, and bug use a matching still frame. */
 export function WordLifeStill({ word }: { word: WordLifeWord }) {
-  if (word === "box") return <WordArt word="box" />;
+  if (word === "box" || word === "sat") return <WordArt word={word} />;
+  if (word === "at") return <AtStill />;
   if (word === "hen") return <HenStill />;
   return <BugStill />;
 }

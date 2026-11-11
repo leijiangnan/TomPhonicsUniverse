@@ -203,8 +203,93 @@ function buildBox(kit: WordLifeKit): WordLifeModel {
   };
 }
 
+const suit = 0xe7eee6;
+const visor = 0x35596b;
+const stripe = 0x8ccdb9;
+const gold = 0xf3ce78;
+
+/** A small space-suit figure shared by the lesson 1 words. The visor faces the camera. */
+function addAstronaut(kit: WordLifeKit, parent: Group, sitting: boolean) {
+  box(kit, parent, 0.52, 0.5, 0.36, suit, 0, 0.18, 0);
+  box(kit, parent, 0.18, 0.14, 0.08, gold, 0, 0.16, 0.2);
+  box(kit, parent, 0.54, 0.08, 0.08, stripe, 0, 0.34, 0.02);
+  sphere(kit, parent, 0.26, suit, 0, 0.62, 0.02);
+  sphere(kit, parent, 0.15, visor, 0, 0.6, 0.16, 1.15, 0.72, 0.4);
+  sphere(kit, parent, 0.045, 0xd7fff4, -0.05, 0.66, 0.26);
+  const antenna = new kit.T.Group();
+  antenna.position.set(0.1, 0.84, 0);
+  cyl(kit, antenna, 0.025, 0.2, stripe, 0, 0.1, 0);
+  sphere(kit, antenna, 0.055, gold, 0, 0.22, 0);
+  parent.add(antenna);
+  const arm = new kit.T.Group();
+  arm.position.set(0.32, 0.32, 0.02);
+  box(kit, arm, 0.12, 0.32, 0.12, suit, 0.04, -0.08, 0);
+  parent.add(arm);
+  box(kit, parent, 0.12, 0.32, 0.12, suit, -0.34, 0.2, 0);
+  if (sitting) {
+    for (const side of [-1, 1]) {
+      const leg = new kit.T.Group();
+      leg.position.set(side * 0.14, -0.08, 0.04);
+      leg.rotation.x = -1.15;
+      cyl(kit, leg, 0.07, 0.32, suit, 0, -0.16, 0);
+      box(kit, leg, 0.12, 0.08, 0.18, 0x9eb7b7, 0, -0.32, 0.04);
+      parent.add(leg);
+    }
+  } else {
+    for (const side of [-1, 1]) {
+      cyl(kit, parent, 0.07, 0.36, suit, side * 0.14, -0.22, 0);
+      box(kit, parent, 0.12, 0.08, 0.18, 0x9eb7b7, side * 0.14, -0.42, 0.04);
+    }
+  }
+  return { antenna, arm };
+}
+
+/** `at` is the preposition “在……”. The picture is an astronaut standing at a star. */
+function buildAt(kit: WordLifeKit): WordLifeModel {
+  const root = new kit.T.Group();
+  const figure = new kit.T.Group();
+  figure.position.set(-0.38, 0.15, 0);
+  const astronaut = addAstronaut(kit, figure, false);
+  root.add(figure);
+  sphere(kit, root, 0.7, 0xc9b48a, 0, -0.72, 0, 1.5, 0.28, 1.1);
+  const star = new kit.T.Mesh(
+    new kit.T.OctahedronGeometry(0.28, 0),
+    kit.mat(gold, { emissive: gold, emissiveIntensity: 0.4 }),
+  );
+  star.position.set(0.62, 0.35, 0.05);
+  root.add(star);
+  return {
+    root,
+    pose(sample) {
+      const lively = energy(sample);
+      astronaut.antenna.rotation.z = Math.sin(sample.progress * Math.PI * 6) * lively * 0.4;
+      astronaut.arm.rotation.z = -0.8 - lively * 0.7;
+      star.position.y = 0.35 + lively * 0.35;
+      star.rotation.y = sample.progress * Math.PI * 2;
+      star.rotation.z = lively * 0.4;
+    },
+  };
+}
+
+/** `sat` reuses the lesson’s sitting astronaut: the past tense of sit. */
+function buildSat(kit: WordLifeKit): WordLifeModel {
+  const root = new kit.T.Group();
+  sphere(kit, root, 0.62, 0xd7c49a, 0, -0.48, 0, 1.35, 0.42, 1.05);
+  const astronaut = addAstronaut(kit, root, true);
+  return {
+    root,
+    pose(sample) {
+      const lively = energy(sample);
+      astronaut.antenna.rotation.z = Math.sin(sample.progress * Math.PI * 5) * lively * 0.45;
+      astronaut.arm.rotation.z = -0.2 - Math.sin(sample.progress * Math.PI * 4) * lively * 0.8;
+    },
+  };
+}
+
 /** Add a new word by registering one builder; the scene stays shared. */
 export const wordLifeBuilders: Record<WordLifeWord, (kit: WordLifeKit) => WordLifeModel> = {
+  at: buildAt,
+  sat: buildSat,
   hen: buildHen,
   bug: buildBug,
   box: buildBox,

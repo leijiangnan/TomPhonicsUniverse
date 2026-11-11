@@ -5,6 +5,8 @@ import { WordLifeStill } from "./WordLifeStill";
 
 describe("word life still art", () => {
   it("shows a hen, a bug, and the existing box drawing without starting a canvas", () => {
+    expect(renderToStaticMarkup(<WordLifeStill word="at" />)).toContain("在星星旁");
+    expect(renderToStaticMarkup(<WordLifeStill word="sat" />)).toContain("坐下的宇航员");
     expect(renderToStaticMarkup(<WordLifeStill word="hen" />)).toContain("母鸡");
     expect(renderToStaticMarkup(<WordLifeStill word="bug" />)).toContain("小虫");
     expect(renderToStaticMarkup(<WordLifeStill word="box" />)).toContain("盒子");
