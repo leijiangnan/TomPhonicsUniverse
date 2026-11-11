@@ -31,7 +31,9 @@ import { ParentLearningCard } from "./components/ParentLearningCard";
 import { ParentBackup } from "./components/ParentBackup";
 import { MissionBrief } from "./components/MissionBrief";
 import { QuickPractice } from "./pages/QuickPractice";
-import { hintPractice, observePractice, practicePool, startPractice } from "./lib/practice";
+import { hintPractice, observePractice, practiceItems, practicePool, startPractice } from "./lib/practice";
+import { wordLifeReward, wordLifeScope, type WordLifeWord } from "./lib/wordLife";
+import { WordLifeReward } from "./components/wordLife/WordLifeReward";
 import { CoursePath } from "./pages/CoursePath";
 import { GalaxyMap } from "./pages/GalaxyMap";
 import { PhonicsLesson } from "./pages/PhonicsLesson";
@@ -114,6 +116,16 @@ export default function App() {
   const music = useBackgroundMusic({ allowed: musicAllowed, masterVolume: progress.volume });
   const musicAction = useRef(0);
   const ambientEnabled = progress.preferences?.ambientMotion ?? true;
+  const rewardScope = wordLifeScope(progress.page, progress.lessonIndex, progress.blendRound);
+  const rewardSerial = useRef(0);
+  const [wordLife, setWordLife] = useState<{ word: WordLifeWord; scope: string; id: number } | null>(null);
+  const activeReward = wordLife && wordLife.scope === rewardScope ? wordLife : null;
+  const showWordLife = (text: string) => {
+    const reward = wordLifeReward(text);
+    if (!reward) return;
+    setWordLife({ word: reward, scope: rewardScope, id: ++rewardSerial.current });
+  };
+  useEffect(() => { setWordLife(null); }, [rewardScope]);
   const { running: atmosphereRunning, reducedMotion } = useAtmosphere({
     active: ["map", "space", "courses"].includes(progress.page) && !modal,
     enabled: ambientEnabled,
@@ -318,6 +330,7 @@ export default function App() {
       dunesFirstCompletion.current = !wasDone;
     setFeedback(solved ? "" : "再听一次，换一换方块。");
     if (solved && progress.volume > 0) audio(blendRounds[progress.blendRound].audio);
+    if (solved) showWordLife(blendRounds[progress.blendRound].word);
     return solved;
   };
   const nextRound = async () => {
@@ -443,7 +456,18 @@ export default function App() {
       {progress.page === "practice" ? (
         <QuickPractice progress={progress}
           onHint={(id, sources) => { setProgress((p) => hintPractice(p, id)); audioSequence(sources); }}
-          onObserve={(id, outcome) => { stopAudio(); audioRequest.current++; setPlayingSrc(null); setProgress((p) => observePractice(p, id, outcome)); }}
+          onObserve={(id, outcome) => {
+            stopAudio();
+            audioRequest.current++;
+            setPlayingSrc(null);
+            const current = progress.practice?.session?.itemIds[progress.practice.session.index] === id;
+            const text = practiceItems.find((item) => item.id === id)?.text ?? "";
+            setProgress((p) => observePractice(p, id, outcome));
+            if (!current) return;
+            const reward = wordLifeReward(text);
+            if (reward) setWordLife({ word: reward, scope: rewardScope, id: ++rewardSerial.current });
+            else setWordLife(null);
+          }}
           onAgain={() => setProgress((p) => startPractice(p, true))}
           onBack={back} />
       ) : progress.page === "space" ? (
@@ -549,6 +573,15 @@ export default function App() {
           progress={progress}
           onPlay={audio}
           onComplete={finishSpeaking}
+        />
+      )}
+      {activeReward && (
+        <WordLifeReward
+          key={activeReward.id}
+          word={activeReward.word}
+          ambientMotion={ambientEnabled}
+          reducedMotion={reducedMotion}
+          onDismiss={() => setWordLife(null)}
         />
       )}
       {saveError && (
