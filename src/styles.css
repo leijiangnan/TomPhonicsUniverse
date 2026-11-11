@@ -3531,3 +3531,77 @@ main h1:focus-visible { outline: 3px solid var(--gold); outline-offset: 6px; bor
   .fuel-meter-grille { display: none; }
   .console-rim { height: 20px; padding: 0 12px; }
 }
+
+/* After-success word reward. The card stays clear of the lesson footer. */
+dialog.word-life-dialog {
+  position: fixed;
+  inset: auto;
+  top: calc(168px + env(safe-area-inset-top));
+  left: auto;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: auto;
+  width: min(360px, calc(100vw - 28px));
+  height: auto;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: visible;
+  background: transparent;
+  color: #f5f3e8;
+  transform: none;
+}
+dialog.word-life-dialog:focus { outline: none; }
+.word-life-card {
+  border: 1px solid #f3ce7888;
+  border-radius: 22px;
+  padding: 12px;
+  background: linear-gradient(180deg, #1b334c 0%, #1d3c48 70%, #243f3c 100%);
+  box-shadow: 0 16px 46px #04101ccc;
+  cursor: pointer;
+}
+.word-life-stage {
+  position: relative;
+  height: 156px;
+  overflow: hidden;
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 18% 28%, #fff8 0 1.5px, transparent 2.2px),
+    radial-gradient(circle at 74% 22%, #fff8 0 1.5px, transparent 2.2px),
+    radial-gradient(circle at 42% 16%, #f3ce78cc 0 1.4px, transparent 2.2px),
+    radial-gradient(circle at 84% 64%, #fff6 0 1px, transparent 1.8px),
+    radial-gradient(circle at 50% 120%, #f3ce7838, transparent 46%),
+    linear-gradient(180deg, #17304a 0%, #1c3b46 62%, #2a463c 100%);
+}
+.word-life-canvas, .word-life-fallback { position: absolute; inset: 0; }
+.word-life-canvas canvas { display: block; width: 100%; height: 100%; }
+.word-life-fallback { display: grid; place-items: center; }
+.word-life-stage .word-art { width: auto; height: 92%; }
+.word-life-caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+}
+.word-life-caption p { margin: 0; display: flex; flex-direction: column; min-width: 0; }
+.word-life-caption b { font-size: 28px; line-height: 1.1; letter-spacing: 0.04em; }
+.word-life-caption span { color: #f3ce78; font-size: 16px; font-weight: 800; }
+.word-life-skip { min-width: 88px; flex: none; }
+@media (max-width: 720px) {
+  dialog.word-life-dialog {
+    top: auto;
+    right: 14px;
+    bottom: calc(88px + env(safe-area-inset-bottom));
+    left: 14px;
+    width: auto;
+  }
+  .word-life-stage { height: 120px; }
+}
+@media (max-height: 720px) {
+  .word-life-stage { height: 120px; }
+  .word-life-caption b { font-size: 24px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .word-life-card { cursor: default; }
+}
