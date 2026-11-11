@@ -1,5 +1,4 @@
 import { ArrowRight, Check, HandHeart, RotateCcw, Volume2 } from "lucide-react";
-import { useEffect, useRef } from "react";
 import { Robot } from "../components/Art";
 import { outcomeLabels, practiceItems, type PracticeOutcome } from "../lib/practice";
 import type { Progress } from "../lib/progress";
@@ -12,8 +11,6 @@ export function QuickPractice({ progress, onHint, onObserve, onAgain, onBack }: 
   onBack: () => void;
 }) {
   const session = progress.practice?.session;
-  const wordRef = useRef<HTMLHeadingElement>(null);
-  useEffect(() => { wordRef.current?.focus(); }, [session?.index]);
   if (!session) return null;
   const done = session.index === session.itemIds.length;
   const item = practiceItems.find((candidate) => candidate.id === session.itemIds[session.index]);
@@ -30,7 +27,7 @@ export function QuickPractice({ progress, onHint, onObserve, onAgain, onBack }: 
     </section> : item && <>
       <section className="practice-board" aria-label={item.kind === "sound" ? "看字母，说字母音" : item.kind === "phrase" ? "读一条短线索" : "看单词，尝试拼读"}>
         <span className="practice-prompt">{item.kind === "sound" ? "看字母，说出它的声音" : item.kind === "phrase" ? "把两个词连起来读" : item.transfer ? "用学过的声音，试读这个词" : "看看字母，把声音连起来"}</span>
-        <h2 ref={wordRef} tabIndex={-1} className={`practice-word ${item.kind}`}>{item.text}</h2>
+        <h2 data-task-focus tabIndex={-1} className={`practice-word ${item.kind}`}>{item.text}</h2>
         <p className="practice-meaning">{hinted ? item.meaning : "轮到你来试一试"}</p>
         <button className="button practice-hint" onClick={() => onHint(item.id, item.audio)}><Volume2 size={23} />{item.kind === "phrase" ? "听逐词示范" : "听示范"}</button>
       </section>

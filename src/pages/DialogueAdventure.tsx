@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Check, Volume2, RotateCcw, ArrowRight, HandHeart } from "lucide-react";
 import { Robot, WordArt } from "../components/Art";
 import { TemporaryRecording } from "../components/TemporaryRecording";
@@ -37,6 +38,7 @@ export function DialogueAdventure({
   onPlay: (src: string) => void;
   onComplete: () => void;
 }) {
+  const [recordingBusy, setRecordingBusy] = useState(false);
   const done = state.node === "completed";
   const node =
     state.node === "completed" ? shopNodes.goodbye : shopNodes[state.node];
@@ -88,6 +90,7 @@ export function DialogueAdventure({
             </div>
             <button
               className="shop-bubble"
+              disabled={recordingBusy}
               onClick={() => onPlay(npcAudio)}
               aria-label={`店主：${npc}，点按播放`}
             >
@@ -101,7 +104,7 @@ export function DialogueAdventure({
                 {(["apple", "gem"] as const).map((i) => (
                   <button
                     key={i}
-                    disabled={!state.confirmed}
+                    disabled={!state.confirmed || recordingBusy}
                     onClick={() => onAction({ type: "choose", item: i })}
                     aria-label={`选择${shopItems[i].label}`}
                   >
@@ -136,6 +139,7 @@ export function DialogueAdventure({
                 <button
                   key={hint}
                   aria-pressed={state.hint === hint}
+                  disabled={recordingBusy}
                   onClick={() => onAction({ type: "hint", hint })}
                 >
                   {label}
@@ -150,6 +154,7 @@ export function DialogueAdventure({
                   <button
                     key={i}
                     onClick={() => onPlay(shopItems[i].audio)}
+                    disabled={recordingBusy}
                     aria-label={`示范：${shopItems[i].sentence}`}
                   >
                     <Volume2 size={20} />
@@ -161,6 +166,7 @@ export function DialogueAdventure({
               ) : (
                 <button
                   onClick={() => onPlay(node.model)}
+                  disabled={recordingBusy}
                   aria-label={`示范：${node.answer}`}
                 >
                   <Volume2 size={20} />
@@ -168,7 +174,7 @@ export function DialogueAdventure({
                 </button>
               )}
             </div>
-            {!state.confirmed && <TemporaryRecording key={state.node} onPlay={onPlay} />}
+            {!state.confirmed && <TemporaryRecording key={state.node} onPlay={onPlay} onBusyChange={setRecordingBusy} />}
           </div>
         </section>
       )}
@@ -195,6 +201,7 @@ export function DialogueAdventure({
             <button
               className="button secondary"
               onClick={() => onAction({ type: "confirm", assisted: true })}
+              disabled={recordingBusy}
             >
               <HandHeart size={21} />
               家长帮我说
@@ -203,6 +210,7 @@ export function DialogueAdventure({
               className="button primary"
               onClick={() => onAction({ type: "confirm" })}
               aria-label="家长确认本轮已尝试"
+              disabled={recordingBusy}
             >
               说好啦，家长确认 <Check size={22} />
             </button>

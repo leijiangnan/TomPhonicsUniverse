@@ -108,6 +108,7 @@ export function ReviewScene({
   matchedItemIds = [],
   highlightedItemId,
   onItem,
+  disabled = false,
 }: {
   sceneId: ReviewSceneId;
   title: string;
@@ -115,6 +116,7 @@ export function ReviewScene({
   matchedItemIds?: readonly string[];
   highlightedItemId?: string;
   onItem: (item: ReviewSceneItem) => void;
+  disabled?: boolean;
 }) {
   return (
     <section className={`review-scene${items.length > 4 ? " scene-many" : ""}`} aria-label={title}>
@@ -132,6 +134,7 @@ export function ReviewScene({
             <button
               key={item.id}
               type="button"
+              disabled={disabled}
               className={`review-scene-item ${item.size ?? "medium"} ${matched ? "matched" : ""} ${highlighted ? "highlighted" : ""}`}
               style={style}
               data-object-id={item.id}

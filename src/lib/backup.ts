@@ -67,6 +67,9 @@ export function readBackup(text: string): Progress {
   }
   if (typeof source.volume !== "number" || !Number.isFinite(source.volume) || source.volume < 0 || source.volume > 1) invalid("存档中的音量无效。");
   if (version === 4) {
+    if (Object.hasOwn(source, "preferences") &&
+      (!isObject(source.preferences) || typeof source.preferences.ambientMotion !== "boolean"))
+      invalid("存档中的背景动效设置无效，当前进度没有改变。");
     const space = source.space;
     if (!isObject(space) || !["earth", "station"].includes(String(space.current)) || !Array.isArray(space.transactions) || space.transactions.length > 1000 ||
       !Number.isInteger(space.stationStep) || Number(space.stationStep) < 0 || Number(space.stationStep) > 3 || typeof space.badge !== "boolean") invalid("探索存档不完整。");

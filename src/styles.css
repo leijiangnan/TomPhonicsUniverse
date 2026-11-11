@@ -103,6 +103,41 @@ button:hover:not(:disabled):not([aria-disabled="true"]) {
   gap: 12px;
   align-items: center;
 }
+.sound-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 92px;
+  height: 52px;
+  padding: 0 13px;
+  border: 1px solid #536e81;
+  border-radius: 12px;
+  background: #23394b;
+  color: #d6e5ea;
+  flex-shrink: 0;
+}
+.sound-button > span { font-size: 15px; font-weight: 800; white-space: nowrap; }
+.sound-button.music-playing { color: #c9efd1; border-color: #9bcaa5; background: #294a45; }
+.sound-button.muted { color: #afbfcb; }
+.sound-panel { display: grid; gap: 16px; }
+.sound-section { padding: 18px; border: 1px solid #b8c9ad; border-radius: 16px; background: #eaf0df; }
+.sound-section-heading { display: flex; align-items: center; gap: 14px; margin-bottom: 15px; }
+.sound-section-heading > svg { flex-shrink: 0; color: #577d53; }
+.sound-section-heading > div { min-width: 0; }
+.sound-section h3 { margin: 0 0 5px; font-size: 21px; line-height: 1.4; }
+.dialog .sound-panel p { margin: 0; line-height: 1.65; }
+.sound-section-heading p { font-size: 16px; }
+.dialog .sound-panel .music-status { margin: 0 0 14px; color: #3d653c; }
+.dialog .sound-panel .sound-note { font-size: 14px; color: #526a46; }
+.dialog .music-section .sound-note { margin-top: 14px; }
+.sound-section button:disabled { opacity: .6; box-shadow: none; }
+@media (max-width: 599px) {
+  .sound-button { min-width: 48px; width: 48px; height: 48px; padding: 0; }
+  .sound-button > span { display: none; }
+  .sound-section { padding: 15px; }
+  .sound-section-heading { gap: 10px; }
+}
 .icon-button {
   width: 52px;
   height: 52px;
@@ -2910,11 +2945,19 @@ input[type="range"] {
 .voyage-page .activity-heading { margin: 0; padding: 24px 0 20px; }
 .fuel-meter { padding: 10px 16px; border: 1px solid #4a6268; }
 .fuel-meter strong { font-size: 27px; }
-.flight-console { display: grid; grid-template-columns: 160px minmax(0, 1fr); align-items: center; gap: 24px; padding: 22px 28px; background: #244247; border: 1px solid #7aab9b; border-radius: 24px; box-shadow: inset 0 1px #f0f5df22; }
-.console-ship { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.flight-console { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; overflow: hidden; background: #1d3b42; border: 1px solid #7aab9b; border-radius: 24px; box-shadow: inset 0 1px #f0f5df22; }
+.console-ship { position: relative; min-width: 0; }
 .console-ship > svg { width: 130px; height: 110px; transform: rotate(35deg); }
-.console-ship > span { font-size: 14px; color: #c4dcd2; }
-.console-task { min-width: 0; }
+.console-route, .console-location { position: absolute; z-index: 1; display: flex; align-items: center; gap: 8px; padding: 7px 12px; border: 1px solid #a7d8e447; border-radius: 999px; background: #0f273dbb; color: #e0f2ef; font-size: 13px; font-weight: 700; pointer-events: none; }
+.console-route { top: 16px; left: 18px; }
+.console-location { bottom: 16px; left: 18px; }
+.flight-scene { position: relative; width: 100%; height: clamp(270px, 30vw, 350px); overflow: hidden; background: radial-gradient(ellipse at 24% 82%, #235779 0%, #142e4a 39%, #0c1b30 100%); }
+.flight-scene-canvas, .flight-scene-fallback { position: absolute; inset: 0; }
+.flight-scene:not(.is-ready) .flight-scene-canvas { visibility: hidden; }
+.flight-scene-canvas canvas { display: block; width: 100%; height: 100%; }
+.flight-scene-fallback { display: grid; place-items: center; }
+.flight-scene-fallback svg { width: 180px; height: 170px; transform: rotate(35deg); }
+.console-task { min-width: 0; padding: 18px 26px 20px; }
 .console-task > .eyebrow { color: #b6d6c6; margin: 0; }
 .flight-console .voyage-action { padding: 8px 0; min-height: 74px; gap: 18px; }
 .flight-console .voyage-action h2 { font-size: 26px; margin: 0 0 5px; }
@@ -3038,7 +3081,7 @@ input[type="range"] {
   .word-spelling { font-size: 25px; }
   .word-meaning { font-size: 15px; }
   .region-picker { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .flight-console { grid-template-columns: 120px minmax(0, 1fr); padding: 20px; gap: 16px; }
+  .flight-console { grid-template-columns: minmax(0, 1fr); }
   .console-ship > svg { width: 105px; }
 }
 @media (max-width: 600px) {
@@ -3135,9 +3178,14 @@ input[type="range"] {
   .fuel-meter svg { width: 20px; }
   .fuel-meter strong { font-size: 23px; }
   .fuel-meter span { font-size: 12px; }
-  .flight-console { grid-template-columns: 63px minmax(0, 1fr); align-items: start; gap: 12px; padding: 17px 14px; border-radius: 19px; }
+  .flight-console { grid-template-columns: minmax(0, 1fr); border-radius: 19px; }
   .console-ship > svg { width: 66px; height: 82px; }
-  .console-ship > span { font-size: 11px; text-align: center; line-height: 1.5; }
+  .flight-scene { height: 240px; }
+  .flight-scene-fallback svg { width: 130px; height: 130px; }
+  .console-route, .console-location { font-size: 12px; padding: 6px 10px; }
+  .console-route { top: 12px; left: 12px; }
+  .console-location { bottom: 12px; left: 12px; }
+  .console-task { padding: 16px; }
   .console-task .eyebrow { font-size: 12px; }
   .flight-console .voyage-action { flex-direction: column; align-items: stretch; gap: 13px; padding: 6px 0; min-height: 0; }
   .flight-console .voyage-action h2 { font-size: 21px; }
@@ -3176,4 +3224,310 @@ input[type="range"] {
 }
 @media (prefers-reduced-motion: reduce) {
   .console-ship.flying > svg { animation: none; }
+}
+
+/* Quiet atmosphere stays behind opaque learning panels, including fullscreen. */
+.app-shell {
+  position: relative;
+  isolation: isolate;
+}
+.space-background {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background: #132138;
+  contain: paint;
+}
+.space-nebula {
+  position: absolute;
+  width: min(1120px, 94vw);
+  height: min(800px, 88vh);
+  left: -18vw;
+  top: -13vh;
+  opacity: .62;
+  background:
+    radial-gradient(ellipse 36% 38% at 38% 40%, #3f8b9d 0%, #285f78b3 40%, transparent 100%),
+    radial-gradient(ellipse 30% 31% at 67% 62%, #295174b3 0%, transparent 100%);
+  animation: atmosphere-drift 20s ease-in-out infinite alternate;
+  animation-delay: -5s;
+}
+.space-nebula.far {
+  left: auto;
+  right: -16vw;
+  top: 35vh;
+  opacity: .62;
+  background:
+    radial-gradient(ellipse 40% 41% at 58% 56%, #796398 0%, #4d4d81b3 42%, transparent 100%),
+    radial-gradient(ellipse 28% 31% at 30% 34%, #355a7d99 0%, transparent 100%);
+  animation-name: atmosphere-drift-far;
+  animation-duration: 26s;
+  animation-delay: -9s;
+}
+.space-nebula.ribbon {
+  width: 130vw;
+  height: 58vh;
+  left: -15vw;
+  top: 62vh;
+  opacity: .52;
+  background:
+    radial-gradient(ellipse 27% 40% at 28% 42%, #3b8293a3 0%, transparent 100%),
+    radial-gradient(ellipse 28% 42% at 70% 55%, #726498b3 0%, transparent 100%);
+  animation-name: atmosphere-ribbon;
+  animation-duration: 18s;
+  animation-delay: -4s;
+}
+.space-star {
+  position: absolute;
+  width: 2.5px;
+  height: 2.5px;
+  border-radius: 50%;
+  background: #d0edf7;
+  opacity: .5;
+  animation: atmosphere-star var(--star-duration) ease-in-out infinite alternate;
+  animation-delay: var(--star-delay);
+}
+.space-star.large { width: 4px; height: 4px; box-shadow: 0 0 7px #b5e5f366; }
+.space-background[data-motion="paused"] > * { animation-play-state: paused; }
+.app-shell[data-learning="true"] .space-background { opacity: .38; }
+@keyframes atmosphere-star {
+  from { opacity: .28; transform: translateY(0); }
+  to { opacity: .78; transform: translateY(-5px); }
+}
+@keyframes atmosphere-drift {
+  from { transform: translate(-16px, -9px) scale(.98); }
+  to { transform: translate(52px, 24px) scale(1.06); }
+}
+@keyframes atmosphere-drift-far {
+  from { transform: translate(20px, 14px) scale(1.04); }
+  to { transform: translate(-42px, -22px) scale(.98); }
+}
+@keyframes atmosphere-ribbon {
+  from { transform: translate(-18px, 12px) scale(.98); }
+  to { transform: translate(34px, -18px) scale(1.04); }
+}
+
+/* The same switch covers existing ambient travel effects. */
+.console-ship:not(.flying) > svg {
+  animation: atmosphere-ship 7s ease-in-out infinite alternate;
+  animation-play-state: paused;
+}
+.app-shell[data-ambient-motion="running"] .console-ship:not(.flying) > svg {
+  animation-play-state: running;
+}
+.app-shell[data-ambient-motion="paused"] .route-arrow-flow {
+  animation-play-state: paused;
+  visibility: hidden;
+}
+@keyframes atmosphere-ship {
+  from { transform: translateY(0) rotate(35deg); }
+  to { transform: translateY(-4px) rotate(35deg); }
+}
+.celebration-planet::before {
+  content: "";
+  position: absolute;
+  inset: 12% 18%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, #a8ca72aa, transparent 70%);
+  pointer-events: none;
+  opacity: 0;
+  animation: atmosphere-light-up .85s ease-out;
+}
+@keyframes atmosphere-light-up {
+  0% { opacity: 0; transform: scale(.65); }
+  40% { opacity: .7; }
+  100% { opacity: 0; transform: scale(1.25); }
+}
+.app-shell[data-ambient-enabled="false"] :is(
+  .space-nebula,
+  .space-star,
+  .route-arrow-flow,
+  .console-ship > svg,
+  .universe-ship.landing,
+  .location-ship.landing,
+  .ship-marker
+) { animation: none; }
+.app-shell[data-ambient-enabled="false"] .celebration-planet::before {
+  animation: none;
+}
+
+.atmosphere-setting {
+  margin: 18px 0;
+  padding: 16px;
+  border: 1px solid #bdcdb0;
+  border-radius: 14px;
+  background: #eaf0df;
+}
+.atmosphere-setting > b { display: block; margin-bottom: 11px; }
+.atmosphere-setting > div:first-child { margin-bottom: 14px; }
+.atmosphere-options { display: flex; flex-wrap: wrap; gap: 10px; }
+.atmosphere-options button {
+  min-width: 100px;
+  min-height: 48px;
+  padding: 10px 17px;
+  border: 1px solid #9fb58f;
+  border-radius: 11px;
+  background: #f5f7ed;
+  color: #3e5d38;
+  font-size: 16px;
+}
+.atmosphere-options button[aria-pressed="true"] {
+  background: #c5dfb7;
+  border-color: #668e54;
+  box-shadow: inset 0 0 0 1px #668e54;
+}
+.dialog .atmosphere-note { margin: 11px 0 0; font-size: 14px; line-height: 1.65; color: #526a46; }
+.speaking-page :is(.spoken-question, .model-answer, .activity-controls button):disabled,
+.dialogue-page :is(.shop-bubble, .hint-modes button, .speech-models button, .shop-controls button):disabled,
+.review-speaking-page :is(.review-npc-line, .review-reply-line, .review-scene-item, .activity-controls button):disabled {
+  opacity: .55;
+  box-shadow: none;
+  filter: none;
+}
+.blend-model-button.suggested {
+  background: #d1e8bf;
+  border: 2px solid #6e9657;
+  box-shadow: 0 0 0 3px #bdd49e55;
+}
+main h1:focus { outline: none; }
+main h1:focus-visible { outline: 3px solid var(--gold); outline-offset: 6px; border-radius: 5px; }
+@media (max-width: 600px) {
+  .space-star:nth-of-type(n + 13) { display: none; }
+  .space-nebula { width: 135vw; height: 72vh; left: -35vw; top: -9vh; opacity: .58; }
+  .space-nebula.far { right: -34vw; top: 40vh; opacity: .58; }
+  .space-nebula.ribbon { width: 150vw; height: 48vh; left: -24vw; top: 68vh; opacity: .48; }
+}
+/* First-lesson transfer: the solved word becomes the next learning task. */
+.reading-board { justify-content: center; }
+.reading-success { display: flex; align-items: center; justify-content: center; gap: 9px; color: #4e7e48; font-size: 20px; font-weight: 800; text-align: center; }
+.reading-word { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 22px 0 12px; padding: 10px; border-radius: 18px; }
+.reading-segment { position: relative; display: grid; place-items: center; width: 104px; height: 118px; border: 2px solid #9cbf88; border-radius: 15px; background: #fdfcf2; color: #42683f; box-shadow: 0 4px 0 #c1cfaf; transition: background-color .18s ease-out, box-shadow .18s ease-out; }
+.reading-segment b { font-size: 72px; line-height: 1; }
+.reading-segment > span { position: absolute; bottom: 13px; display: flex; justify-content: center; gap: 5px; min-height: 6px; }
+.reading-segment i { width: 5px; height: 5px; border-radius: 50%; background: #668f62; }
+.reading-segment.active { background: #c6e0b8; box-shadow: 0 0 0 3px #64905e; }
+.reading-meaning { margin: 0; color: #3f6038; font-size: 22px; font-weight: 800; }
+.reading-support { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
+.reading-support .button { min-height: 50px; padding: 10px 18px; font-size: 18px; }
+.reading-note { margin: 14px 0 0; color: #64765a; font-size: 16px; }
+.reading-footer-note { margin: 0; color: #c9dcd6; font-size: 16px; }
+
+/* Completion keeps one main next action and explains this exact reward event. */
+.celebration-fuel { display: grid; justify-items: center; gap: 3px; margin: 10px 0 0; padding: 12px 16px; border-radius: 14px; background: #e7eedb; color: #3f6038; text-align: center; }
+.celebration-fuel strong { font-size: 22px; }
+.celebration-fuel span { font-size: 16px; font-weight: 700; }
+.celebration-fuel small { color: #64745b; font-size: 14px; }
+
+/* The full course remains available behind explicit, keyboard-operable unit bars. */
+.course-path-tools { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin: 0 0 22px; }
+.course-path-tools p { margin: 0; color: #c2cfdd; font-size: 16px; }
+.course-path-tools .button { min-height: 48px; flex-shrink: 0; padding: 10px 16px; font-size: 16px; }
+.course-unit { margin: 20px 0; }
+.course-unit h2 { margin: 0; }
+.course-unit[data-expanded="true"] h2 { margin-bottom: 18px; }
+.course-unit-toggle { display: flex; align-items: center; gap: 14px; width: 100%; min-height: 64px; padding: 4px; border: 0; border-radius: 12px; background: transparent; color: #edf3f8; text-align: left; }
+.course-unit-toggle:hover { background: #ffffff08; }
+.course-unit-number { display: grid; place-items: center; flex: 0 0 44px; width: 44px; height: 44px; border-radius: 14px; background: #344e68; color: #f3ce78; font-size: 25px; font-weight: 800; }
+.course-unit-name { display: grid; flex: 1; gap: 4px; min-width: 0; font-size: 25px; font-weight: 800; }
+.course-unit-name small { margin-left: 0; color: #c2cfdd; font-size: 15px; font-weight: 500; }
+.course-unit-state { flex-shrink: 0; margin-left: auto; color: #d5dfda; font-size: 14px; font-weight: 700; }
+.course-unit-toggle > svg { flex-shrink: 0; color: #c2cfdd; transition: transform .18s ease-out; }
+.course-unit[data-expanded="true"] .course-unit-toggle > svg { transform: rotate(180deg); }
+.course-unit-panel .unit-note { margin: 0 0 16px; }
+
+@media (max-width: 600px) {
+  .reading-success { font-size: 17px; }
+  .reading-word { gap: 8px; margin-top: 18px; padding: 7px; }
+  .reading-segment { width: 82px; height: 100px; }
+  .reading-segment b { font-size: 58px; }
+  .reading-support { gap: 9px; margin-top: 16px; }
+  .reading-support .button { padding: 9px 12px; font-size: 15px; }
+  .reading-note { font-size: 14px; text-align: center; }
+  .reading-controls { flex-direction: column; align-items: stretch; gap: 10px; }
+  .reading-controls .primary { width: 100%; }
+  .reading-footer-note { order: 2; font-size: 14px; text-align: center; }
+  .celebration-fuel { padding: 10px 12px; }
+  .celebration-fuel strong { font-size: 20px; }
+  .course-path-tools { flex-direction: column; align-items: stretch; gap: 12px; }
+  .course-path-tools p { font-size: 14px; }
+  .course-path-tools .button { width: 100%; }
+  .course-unit-toggle { gap: 10px; }
+  .course-unit-number { flex-basis: 38px; width: 38px; height: 44px; font-size: 21px; }
+  .course-unit-name { font-size: 20px; }
+  .course-unit-name small { font-size: 13px; }
+  .course-unit-state { max-width: 58px; font-size: 12px; text-align: right; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .space-background > *,
+  .console-ship:not(.flying) > svg,
+  .celebration-planet::before { animation: none; }
+}
+
+/* Voyage dashboard: layered instrument surfaces sit above a distant planet. */
+.voyage-page { position: relative; isolation: isolate; }
+.voyage-page::before {
+  content: ""; position: absolute; z-index: -1; pointer-events: none;
+  top: 36px; right: 2%; width: min(36vw, 400px); aspect-ratio: 1;
+  border-radius: 50%; opacity: .5;
+  background: radial-gradient(circle at 33% 24%, #8ccef566, #3882a73b 29%, #1a355a1a 60%, #080f2510 75%);
+  box-shadow: inset -20px -28px 60px #061225a6, 0 0 85px #73c3db1a;
+}
+.voyage-page::after {
+  content: ""; position: absolute; z-index: -1; pointer-events: none;
+  top: 168px; right: 0; width: min(42vw, 470px); height: 95px;
+  border: 1px solid #83cbe92b; border-radius: 50%; transform: rotate(-20deg);
+}
+.voyage-heading { position: relative; }
+.voyage-page .fuel-meter {
+  display: flex; align-items: center; flex-wrap: nowrap; gap: 10px; max-width: none;
+  padding: 9px 13px 10px; border: 1px solid #95bcbc; border-radius: 18px;
+  background: linear-gradient(145deg, #55797c, #294e55 55%, #1a363f);
+  box-shadow: inset 0 1px #e7ffeb66, inset 0 -4px #102f3a99, 0 5px 0 #0c2631, 0 9px 18px #07162766;
+}
+.fuel-meter-icon { display: grid; place-items: center; width: 38px; height: 38px; flex: 0 0 38px; color: #f7d783; border: 1px solid #b1b89577; border-radius: 12px; background: linear-gradient(145deg, #405f5d, #1a3540); box-shadow: inset 0 2px 5px #0c1f27aa; }
+.fuel-meter-reading { display: flex; flex-direction: column; align-items: flex-start; min-width: 44px; line-height: 1; }
+.voyage-page .fuel-meter-reading span { color: #c8e2d7; font-size: 11px; font-weight: 800; white-space: nowrap; }
+.voyage-page .fuel-meter-reading strong { margin-top: 4px; color: #ffdf88; font-size: 25px; line-height: 1; font-variant-numeric: tabular-nums; }
+.fuel-meter-grille { display: flex; gap: 3px; align-items: center; height: 22px; padding: 4px; border-radius: 6px; background: #102a32; box-shadow: inset 0 1px 4px #07171e; }
+.fuel-meter-grille i { width: 3px; height: 12px; border-radius: 2px; background: #6b9b98; }
+.flight-console {
+  border: 1px solid #8ec2b9; border-radius: 26px;
+  background: linear-gradient(150deg, #355d60 0%, #1e4149 55%, #132d3b 100%);
+  box-shadow: inset 0 2px #d3f7e86b, inset 0 -5px #102f3c, 0 7px 0 #102c3b, 0 17px 34px #07152888;
+}
+.console-rim { display: flex; align-items: center; gap: 6px; height: 24px; padding: 0 17px; border-bottom: 1px solid #9dd2c745; background: linear-gradient(#507779, #294f55); }
+.console-rim i { width: 6px; height: 6px; border-radius: 50%; background: #a4e4ce; box-shadow: 0 0 7px #a0e8d2; }
+.console-rim i:nth-child(2) { background: #f4d183; box-shadow: 0 0 7px #f7cf79; }
+.console-rim i:nth-child(3) { background: #efac85; box-shadow: 0 0 7px #edac85; }
+.console-rim b { width: 50px; height: 3px; margin-left: auto; border-radius: 3px; background: #b4e3d17a; box-shadow: 0 1px #133c40; }
+.console-task { position: relative; border-top: 1px solid #a7d9c65c; background: linear-gradient(125deg, #315950e8, #193945f5); }
+.console-task::before { content: ""; position: absolute; top: 0; left: 12%; width: 45%; height: 1px; background: linear-gradient(90deg, transparent, #d3ffddae, transparent); pointer-events: none; }
+.console-budget > progress { border-radius: 8px; overflow: hidden; box-shadow: 0 1px #a7d3c544, inset 0 2px 3px #0c252e; }
+.voyage-page .universe-overview {
+  position: relative; border: 1px solid #6f90a9; border-radius: 26px;
+  background: linear-gradient(155deg, #263e59f5 0%, #192c47f7 50%, #13233af7 100%);
+  box-shadow: inset 0 2px #c0eaff42, inset 0 -5px #0b192da8, 0 6px 0 #0d1c31, 0 16px 35px #06122366;
+}
+.voyage-page .universe-heading h2 { color: #f0faf8; text-shadow: 0 2px 8px #07162b; }
+.voyage-page .region-picker button {
+  border-color: #607c94; background: linear-gradient(145deg, #3e5b6b, #263f55 65%, #1c344b);
+  box-shadow: inset 0 1px #d0efed35, 0 3px 0 #13283e, 0 5px 10px #08172955;
+}
+.voyage-page .region-picker button[aria-pressed="true"] {
+  border-color: #f5d880; background: linear-gradient(145deg, #667b6f, #3c5c59 65%, #28464e);
+  box-shadow: inset 0 1px #fff3bd85, 0 3px 0 #1b3842, 0 0 16px #f1cf6640;
+}
+.voyage-page .universe-nodes { box-shadow: inset 0 2px 16px #071525a3, inset 0 1px #9cbed23d; }
+@media (max-width: 600px) {
+  .voyage-page::before { top: 65px; width: 56vw; }
+  .voyage-page::after { top: 145px; width: 62vw; height: 58px; }
+  .voyage-page .fuel-meter { gap: 6px; padding: 8px; border-radius: 14px; }
+  .fuel-meter-icon { width: 30px; height: 30px; flex-basis: 30px; border-radius: 9px; }
+  .fuel-meter-icon svg { width: 19px; }
+  .voyage-page .fuel-meter-reading span { font-size: 11px; }
+  .voyage-page .fuel-meter-reading strong { font-size: 20px; }
+  .fuel-meter-grille { display: none; }
+  .console-rim { height: 20px; padding: 0 12px; }
 }

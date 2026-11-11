@@ -20,6 +20,7 @@ export function ReviewDialogueChallenge({
   const step = Math.min(progress.reviewDialogueStep, review.dialogue.length - 1);
   const line = review.dialogue[step];
   const [revealedStep, setRevealedStep] = useState<number | null>(null);
+  const [recordingBusy, setRecordingBusy] = useState(false);
   const showReply = revealedStep === step;
 
   return (
@@ -38,6 +39,7 @@ export function ReviewDialogueChallenge({
         <ReviewScene
           sceneId={review.sceneId}
           title={review.sceneTitle}
+          disabled={recordingBusy}
           items={review.placementItems}
           matchedItemIds={review.placementItems.map((item) => item.id)}
           highlightedItemId={line.focusItemId}
@@ -50,6 +52,7 @@ export function ReviewDialogueChallenge({
             <button
               type="button"
               className="review-npc-line"
+              disabled={recordingBusy}
               onClick={() => onPlay(line.npcAudio)}
             >
               <Volume2 size={23} />
@@ -62,6 +65,7 @@ export function ReviewDialogueChallenge({
             <button
               type="button"
               className="review-reply-line"
+              disabled={recordingBusy}
               onClick={() => {
                 setRevealedStep(step);
                 onPlay(line.replyAudio);
@@ -81,13 +85,13 @@ export function ReviewDialogueChallenge({
               </span>
             </button>
           </div>
-          <TemporaryRecording key={step} onPlay={onPlay} />
+          <TemporaryRecording key={step} onPlay={onPlay} onBusyChange={setRecordingBusy} />
         </section>
       </div>
 
       <footer className="activity-controls">
         <p className="parent-confirm">家长确认孩子已尝试开口</p>
-        <button className="button primary" onClick={onConfirm}>
+        <button className="button primary" onClick={onConfirm} disabled={recordingBusy}>
           {step === review.dialogue.length - 1
             ? "检查完成，点亮星球"
             : "说好了，继续"}

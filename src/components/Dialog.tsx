@@ -11,13 +11,25 @@ export function Dialog({
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const triggerRef = useRef<HTMLElement | null>(null);
+  const restoreFocus = () => {
+    const trigger = triggerRef.current;
+    if (trigger?.isConnected && trigger !== document.body && !trigger.matches(":disabled")) {
+      trigger.focus({ preventScroll: true });
+    } else {
+      const heading = document.querySelector<HTMLElement>("main h1");
+      if (heading) {
+        heading.tabIndex = -1;
+        heading.focus({ preventScroll: true });
+      }
+    }
+  };
   useEffect(() => {
     const el = ref.current!;
     triggerRef.current = document.activeElement as HTMLElement | null;
     el.showModal();
     return () => {
       el.close();
-      triggerRef.current?.focus();
+      restoreFocus();
     };
   }, []);
   return (
@@ -28,7 +40,7 @@ export function Dialog({
       onCancel={(e) => {
         e.preventDefault();
         onClose();
-        requestAnimationFrame(() => triggerRef.current?.focus());
+        requestAnimationFrame(restoreFocus);
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();

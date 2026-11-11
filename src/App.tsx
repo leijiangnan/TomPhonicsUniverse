@@ -1,5 +1,6 @@
 import { useProgress } from "./lib/useProgress";
-import { fuel, travel, confirmStation } from "./lib/space";
+import { fuel, travel, confirmStation, stationFound, STATION_COST } from "./lib/space";
+import { celebrationFuelCopy } from "./lib/celebration";
 import { SpaceMap } from "./pages/SpaceMap";
 import { DialogueAdventure } from "./pages/DialogueAdventure";
 import { dialogueReducer, newDialogue } from "./lib/dialogue";
@@ -12,7 +13,7 @@ import {
   House,
   Maximize2,
   Minimize2,
-  Rocket,
+  Music2,
   Settings2,
   Share2,
   SquarePlus,
@@ -22,6 +23,10 @@ import {
 } from "lucide-react";
 import { Cube, PlanetArt } from "./components/Art";
 import { Dialog } from "./components/Dialog";
+import { SpaceBackground } from "./components/SpaceBackground";
+import { useAtmosphere } from "./lib/useAtmosphere";
+import { useBackgroundMusic } from "./lib/useBackgroundMusic";
+import { SoundPanel } from "./components/SoundPanel";
 import { ParentLearningCard } from "./components/ParentLearningCard";
 import { ParentBackup } from "./components/ParentBackup";
 import { MissionBrief } from "./components/MissionBrief";
@@ -58,7 +63,7 @@ import {
   placeReviewWord,
 } from "./lib/review";
 import { playAudio, stopAudio } from "./lib/audio";
-type Modal = "settings" | "fullscreen" | "locked" | "celebration" | null;
+type Modal = "sound" | "settings" | "fullscreen" | "locked" | "celebration" | null;
 type WebkitDocument = Document & {
   webkitFullscreenElement?: Element | null;
   webkitExitFullscreen?: () => Promise<void> | void;
@@ -104,7 +109,17 @@ export default function App() {
     setModal(null);
   };
   const [modal, setModal] = useState<Modal>(null);
+  const learning = ["lesson", "blending", "speaking", "practice"].includes(progress.page);
+  const musicAllowed = !learning && (!modal || modal === "sound");
+  const music = useBackgroundMusic({ allowed: musicAllowed, masterVolume: progress.volume });
+  const musicAction = useRef(0);
+  const ambientEnabled = progress.preferences?.ambientMotion ?? true;
+  const { running: atmosphereRunning, reducedMotion } = useAtmosphere({
+    active: ["map", "space", "courses"].includes(progress.page) && !modal,
+    enabled: ambientEnabled,
+  });
   const [selectedPlanet, setSelectedPlanet] = useState<PlanetId>("forest");
+  const [celebrationGain, setCelebrationGain] = useState<number | null>(0);
   const [notice, setNotice] = useState("");
   const [playingSrc, setPlayingSrc] = useState<string | null>(null);
   const [feedback, setFeedback] = useState("");
@@ -116,6 +131,15 @@ export default function App() {
   );
   const audioRequest = useRef(0);
   const appShell = useRef<HTMLDivElement>(null);
+  const taskKey = `${previewEnabled}:${progress.lessonIndex}:${progress.page}:${
+    progress.page === "lesson" ? progress.step
+      : progress.page === "blending" ? progress.blendRound
+      : progress.page === "speaking" ? review ? progress.reviewDialogueStep : progress.dialogue?.node ?? "single"
+      : progress.page === "practice" ? `${progress.practice?.turn}:${progress.practice?.session?.index}`
+      : progress.page === "space" ? `${progress.space.current}:${progress.space.stationStep}` : ""
+  }`;
+  const taskContext = useRef(taskKey);
+  taskContext.current = taskKey;
   const togglePreview = (enabled: boolean) => {
     audioRequest.current++;
     stopAudio();
@@ -152,7 +176,20 @@ export default function App() {
   ]);
   useEffect(() => {
     window.scrollTo(0, 0);
+    appShell.current?.scrollTo(0, 0);
   }, [progress.page]);
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      if (document.querySelector("dialog[open]")) return;
+      const target = appShell.current?.querySelector<HTMLElement>("[data-task-focus]")
+        ?? appShell.current?.querySelector<HTMLElement>("main h1");
+      if (target) {
+        target.tabIndex = -1;
+        target.focus({ preventScroll: true });
+      }
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [taskKey]);
   useEffect(() => () => stopAudio(), []);
   useEffect(() => {
     if (!notice) return;
@@ -239,12 +276,14 @@ export default function App() {
       previewEnabled ? openPlanetForPreview(p, id) : openPlanet(p, id),
     );
   };
-  const celebrate = (id: PlanetId) => {
+  const celebrate = (id: PlanetId, gain: number | null) => {
     setSelectedPlanet(id);
+    setCelebrationGain(gain);
     setModal("celebration");
   };
   const finishLetter = async () => {
     const expected = progress.step;
+    const wasDone = forestDone(progress);
     let finished = false;
     await setProgress((p) => {
       if (p.page !== "lesson" || p.lessonIndex !== progress.lessonIndex || p.step !== expected) return p;
@@ -252,7 +291,7 @@ export default function App() {
       finished = expected === STEP_COUNT - 1 && forestDone(next);
       return finished ? { ...next, page: "map" } : next;
     });
-    if (finished) celebrate("forest");
+    if (finished) celebrate("forest", !previewEnabled && !wasDone ? 30 : 0);
   };
   const changeStep = (n: number) => {
     setProgress((p) => p.page === "lesson" && p.lessonIndex === progress.lessonIndex && n >= 0 && n < STEP_COUNT &&
@@ -262,7 +301,10 @@ export default function App() {
     setFeedback("");
     setProgress((p) => updateBlendDraft(p, change));
   };
-  const check = async () => {
+  const dunesFirstCompletion = useRef<boolean | null>(null);
+  const check = async (): Promise<boolean | null> => {
+    const context = taskContext.current;
+    const wasDone = dunesDone(progress);
     let attempted = false, solved = false;
     await setProgress((p) => {
       if (p.page !== "blending" || p.lessonIndex !== progress.lessonIndex || p.blendRound !== progress.blendRound || p.blendSolved) return p;
@@ -271,9 +313,12 @@ export default function App() {
       solved = next !== p;
       return next;
     });
-    if (!attempted) return;
+    if (!attempted || context !== taskContext.current) return null;
+    if (solved && progress.blendRound === blendRounds.length - 1)
+      dunesFirstCompletion.current = !wasDone;
     setFeedback(solved ? "" : "再听一次，换一换方块。");
     if (solved && progress.volume > 0) audio(blendRounds[progress.blendRound].audio);
+    return solved;
   };
   const nextRound = async () => {
     let finished = false;
@@ -289,9 +334,13 @@ export default function App() {
       finished = p.blendRound === blendRounds.length - 1 && dunesDone(p);
       return finished ? { ...p, page: "map" } : { ...p, blendRound: p.blendRound + 1, blendDraft: [], blendSolved: false };
     });
-    if (finished) celebrate("dunes");
+    if (finished) {
+      const gain = previewEnabled ? 0 : dunesFirstCompletion.current === null ? null : dunesFirstCompletion.current ? 20 : 0;
+      celebrate("dunes", gain);
+    }
   };
   const finishSpeaking = async () => {
+    const wasDone = progress.speakingCompleted;
     let finished = false;
     await setProgress((p) => {
       if (p.page !== "speaking" || p.lessonIndex !== progress.lessonIndex || !dunesDone(p)) return p;
@@ -305,12 +354,20 @@ export default function App() {
       finished = true;
       return { ...p, speakingCompleted: true, page: "map" };
     });
-    if (finished) celebrate("crystal");
+    if (finished) celebrate("crystal", !previewEnabled && !wasDone ? 40 : 0);
   };
   const planet = planets.find((p) => p.id === selectedPlanet)!;
   const planetIndex = planets.findIndex((p) => p.id === selectedPlanet);
   const nextPlanet = planets[planetIndex + 1];
   const previousPlanet = planets[Math.max(0, planetIndex - 1)];
+  const hasNextCourse = !nextPlanet && progress.lessonIndex + 1 < lessons.length;
+  const celebrationFuel = celebrationFuelCopy({
+    gain: celebrationGain,
+    balance: fuel(progress.space),
+    cost: STATION_COST,
+    visited: stationFound(progress.space),
+    preview: previewEnabled,
+  });
   const muted = progress.volume === 0;
   const pageTitle =
     progress.page === "lesson"
@@ -319,7 +376,10 @@ export default function App() {
         ? planets[1].name
         : planets[2].name;
   return (
-    <div className={`app-shell${previewEnabled ? " preview-session" : ""}`} ref={appShell}>
+    <div className={`app-shell${previewEnabled ? " preview-session" : ""}`} ref={appShell}
+      data-ambient-motion={atmosphereRunning ? "running" : "paused"}
+      data-ambient-enabled={ambientEnabled} data-learning={learning}>
+      <SpaceBackground active={atmosphereRunning} enabled={ambientEnabled} />
       <header className="topbar">
         {progress.page === "map" ? (
           <div className="brand">
@@ -351,13 +411,14 @@ export default function App() {
         )}
         <div className="header-actions">
           <button
-            className="icon-button"
-            aria-label={muted ? "开启声音" : "关闭声音"}
-            onClick={() =>
-              setProgress((p) => ({ ...p, volume: muted ? 0.8 : 0 }))
-            }
+            className={`sound-button${music.playing ? " music-playing" : ""}${muted ? " muted" : ""}`}
+            aria-label={`声音与音乐设置，${muted ? "声音已关闭" : music.playing ? "音乐播放中" : "声音已开启"}`}
+            aria-haspopup="dialog"
+            title="声音与音乐"
+            onClick={() => setModal("sound")}
           >
-            {muted ? <VolumeX size={24} /> : <Volume2 size={24} />}
+            {muted ? <VolumeX size={24} /> : music.playing ? <Music2 size={24} /> : <Volume2 size={24} />}
+            <span>{muted ? "静音" : music.playing ? "音乐中" : "声音"}</span>
           </button>
           {!standalone && (
             <button
@@ -388,6 +449,7 @@ export default function App() {
       ) : progress.page === "space" ? (
         <SpaceMap
           progress={progress}
+          atmosphereRunning={atmosphereRunning}
           onPlay={audio}
           onPractice={practicePool(progress).length ? () => setProgress((p) => startPractice(p)) : undefined}
           onTravel={(target) => setProgress((p) => travel(p, target), true)}
@@ -444,6 +506,7 @@ export default function App() {
         />
       ) : progress.page === "blending" ? (
         <BlendingChallenge
+          key={`${previewEnabled}:${lesson.id}:${progress.blendRound}`}
           progress={progress}
           onPlay={audio}
           onPlaySequence={audioSequence}
@@ -504,7 +567,9 @@ export default function App() {
       {modal && (
         <Dialog
           title={
-            modal === "settings"
+            modal === "sound"
+              ? "声音与音乐"
+              : modal === "settings"
               ? "家长陪伴指南"
               : modal === "fullscreen"
                 ? "在 iPad 上全屏"
@@ -514,8 +579,32 @@ export default function App() {
           }
           onClose={() => setModal(null)}
         >
+          {modal === "sound" && <SoundPanel muted={muted} musicAllowed={musicAllowed}
+            musicIntent={music.intent} musicPlaying={music.playing} musicLoading={music.loading} musicError={music.error}
+            onToggleSound={() => {
+              musicAction.current++;
+              setProgress((p) => ({ ...p, volume: p.volume === 0 ? 0.8 : 0 }));
+            }}
+            onToggleMusic={() => {
+              const action = ++musicAction.current;
+              if (music.intent && !music.error) music.pause();
+              else {
+                music.start(muted ? 0.8 : undefined);
+                if (muted) void setProgress((p) => ({ ...p, volume: 0.8 })).then((saved) => {
+                  if (!saved && action === musicAction.current) music.pause();
+                });
+              }
+            }} />}
           {modal === "settings" && (
             <>
+              <section className="atmosphere-setting" aria-label="背景动效设置">
+                <div><b>星空背景</b><p>上课时保持静止，地图和航行时可轻轻流动。</p></div>
+                <div className="atmosphere-options" role="group" aria-label="选择背景动效">
+                  <button type="button" aria-pressed={ambientEnabled} onClick={() => setProgress((p) => ({ ...p, preferences: { ...p.preferences, ambientMotion: true } }))}>轻动效</button>
+                  <button type="button" aria-pressed={!ambientEnabled} onClick={() => setProgress((p) => ({ ...p, preferences: { ...p.preferences, ambientMotion: false } }))}>静态</button>
+                </div>
+                <p className="atmosphere-note">{reducedMotion ? "设备已开启减少动态效果，当前使用静态显示。" : "打开家长面板、录音或切到后台时，背景会暂停。"}</p>
+              </section>
               <ParentLearningCard progress={progress} />
               {practicePool(progress).length > 0 && <button className="button secondary full" onClick={() => { setModal(null); setProgress((p) => startPractice(p)); }}>复习一下已学内容 <ArrowRight size={20} /></button>}
               <p>
@@ -609,7 +698,7 @@ export default function App() {
                 </p>
               </div>
               <label className="volume-label" htmlFor="volume">
-                示范音量 <b>{Math.round(progress.volume * 100)}%</b>
+                声音音量 <b>{Math.round(progress.volume * 100)}%</b>
               </label>
               <input
                 id="volume"
@@ -622,7 +711,7 @@ export default function App() {
                   setProgress((p) => ({ ...p, volume: Number(e.target.value) }))
                 }
               />
-              <p>iPad 上也可使用设备音量键调整。</p>
+              <p>同时调整点读与轻音乐，音乐保持较低音量。iPad 上也可使用设备音量键调整。</p>
               <div className="modal-note">
                 <b>试听音频待人工校对</b>
                 <p>
@@ -698,27 +787,17 @@ export default function App() {
                   ? `下一站：${nextPlanet.name}`
                   : `第 ${progress.lessonIndex + 1} 课完成啦！${progress.lessonIndex + 1 < lessons.length ? "下一课已解锁。" : "已开发课程全部完成！"}`}
               </p>
-              <p className="celebration-message">
-                探索燃料：{fuel(progress.space)}
-              </p>
+              <div className="celebration-fuel" aria-label="探索燃料反馈">
+                {celebrationFuel.reward && <strong>{celebrationFuel.reward}</strong>}
+                <span>{celebrationFuel.destination}</span>
+                <small>当前燃料 {fuel(progress.space)}</small>
+              </div>
               <div className="celebration-learning">
                 <span>{selectedPlanet === "forest" ? "我们练过的声音" : selectedPlanet === "dunes" ? "我们拼过的单词" : "我们尝试说过的话"}</span>
                 <strong>{selectedPlanet === "forest" ? lesson.steps.map((step) => step.grapheme).join(" · ") : selectedPlanet === "dunes" ? lesson.blendRounds.map((round) => round.word).join(" · ") : lesson.id === "mission-001" ? "Hello! · I want… · Thank you! · Bye!" : lesson.speakingTask.answer}</strong>
               </div>
               <MissionBrief progress={progress} />
-              {!previewEnabled && (
-                <button
-                  className="button secondary full"
-                  onClick={() => {
-                    setModal(null);
-                    setProgress((p) => ({ ...p, page: "space" }));
-                  }}
-                >
-                  <Rocket size={21} />
-                  驾驶飞船
-                </button>
-              )}
-              {!nextPlanet && progress.lessonIndex + 1 < lessons.length && (
+              {hasNextCourse && (
                 <button
                   className="button primary full"
                   onClick={() => goCourse(progress.lessonIndex + 1)}
@@ -736,7 +815,7 @@ export default function App() {
                 </button>
               )}
               <button
-                className={`button ${nextPlanet ? "secondary" : "primary"} full`}
+                className={`button ${!nextPlanet && !hasNextCourse ? "primary" : "secondary"} full`}
                 onClick={() => {
                   setModal(null);
                   back();

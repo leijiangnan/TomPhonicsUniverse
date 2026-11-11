@@ -8,6 +8,20 @@ import { reviewForLesson } from "../data/reviews";
 
 const learned = () => reconcileRewards({ ...initialProgress, completed: [0, 1, 2], blendCompleted: [0, 1], speakingCompleted: true, volume: .4 });
 describe("reviewable local backups", () => {
+  it("round-trips explicit motion choices and accepts existing backups without settings", () => {
+    expect(readBackup(createBackup(learned()))).not.toHaveProperty("preferences");
+    for (const ambientMotion of [true, false]) {
+      const p = { ...learned(), preferences: { ambientMotion } };
+      const restored = readBackup(createBackup(p));
+      expect(restored.preferences).toEqual({ ambientMotion });
+      expect(restored.space).toEqual(p.space);
+      expect(backupSummary(restored)).toEqual(backupSummary(p));
+    }
+  });
+  it("rejects malformed motion choices before importing a backup", () => {
+    for (const preferences of [null, false, [], {}, { ambientMotion: "false" }, { ambientMotion: 0 }])
+      expect(() => readBackup(JSON.stringify({ ...initialProgress, preferences }))).toThrow("背景动效设置无效");
+  });
   it("round-trips learning, voyage, draft, volume, observations and a current session", () => {
     let p = startPractice({ ...travel(learned(), "station"), blendDraft: ["a"] });
     const id = p.practice!.session!.itemIds[0];

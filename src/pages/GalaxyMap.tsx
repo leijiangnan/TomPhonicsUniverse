@@ -46,7 +46,7 @@ export function GalaxyMap({
             : currentCourse(progress) < 0
             ? "已开发的 16 课已完成"
             : `第 ${progress.lessonIndex + 1} 课 · ${lesson.focus}`}
-          <small>已完成 {lessons.filter((_, n) => courseDone(progress, n)).length} / 48 课</small>
+          <small>本课三站 · 已完成 {lessons.filter((_, n) => courseDone(progress, n)).length} 课</small>
         </span>
         <div className="map-navigation">
           <button

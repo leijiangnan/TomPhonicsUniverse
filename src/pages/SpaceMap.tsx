@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { ArrowRight, Check, Fuel, Rocket, Volume2 } from "lucide-react";
+import { ArrowLeftRight, ArrowRight, Check, Fuel, Rocket, Volume2 } from "lucide-react";
 import { Badge } from "../components/space/SpaceArt";
-import { Ship } from "../components/space/SpaceArt";
+import { FlightScene } from "../components/space/FlightScene";
 import { nextExplorationNode } from "../data/space/catalog";
 import { UniverseOverview } from "../components/space/UniverseOverview";
 import { Robot, Cube } from "../components/Art";
@@ -21,6 +21,7 @@ export function SpaceMap({
   onConfirm,
   onPlay,
   onPractice,
+  atmosphereRunning,
 }: {
   progress: Progress;
   onTravel: (id: SpaceNodeId) => Promise<boolean>;
@@ -28,6 +29,7 @@ export function SpaceMap({
   onConfirm: (step: number) => Promise<boolean>;
   onPlay: (src: string) => void;
   onPractice?: () => void;
+  atmosphereRunning: boolean;
 }) {
   const [regionIndex, setRegionIndex] = useState(0);
   const [flying, setFlying] = useState(false);
@@ -39,7 +41,7 @@ export function SpaceMap({
   const nextNode = nextExplorationNode(found);
   useEffect(() => {
     if (!flying) return;
-    const timer = setTimeout(() => setFlying(false), 1200);
+    const timer = setTimeout(() => setFlying(false), 4000);
     return () => clearTimeout(timer);
   }, [flying]);
   async function go(target: SpaceNodeId) {
@@ -48,8 +50,7 @@ export function SpaceMap({
     try {
       if (await onTravel(target)) {
         setVisit(false);
-        if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches)
-          setFlying(true);
+        if (atmosphereRunning) setFlying(true);
       }
     } finally {
       setBusy(false);
@@ -58,19 +59,21 @@ export function SpaceMap({
   const line = stationLines[Math.min(s.stationStep, 2)];
   return (
     <main className="voyage-page">
-      <div className="activity-heading">
+      <div className="activity-heading voyage-heading">
         <div>
           <h1>我的星际航行</h1>
           <p>
-            {s.current === "earth"
+            {flying
+              ? `飞船正在前往${s.current === "earth" ? "地球" : "补给空间站"}。`
+              : s.current === "earth"
               ? "从地球出发，去空间站看看。"
               : "已抵达补给空间站！"}
           </p>
         </div>
         <div className="fuel-meter" aria-label={`探索燃料 ${balance}`}>
-          <Fuel size={28} />
-          <strong>{balance}</strong>
-          <span>燃料</span>
+          <div className="fuel-meter-icon" aria-hidden="true"><Fuel size={23} /></div>
+          <div className="fuel-meter-reading"><span>探索燃料</span><strong>{balance}</strong></div>
+          <div className="fuel-meter-grille" aria-hidden="true"><i /><i /><i /><i /></div>
         </div>
       </div>
       {visit && s.current === "station" ? (
@@ -152,7 +155,12 @@ export function SpaceMap({
       ) : (
         <>
           <section className="flight-console" aria-label="航行控制台">
-            <div className={`console-ship ${flying ? "flying" : ""}`}><Ship /><span>{s.current === "earth" ? "停靠地球" : "停靠补给空间站"}</span></div>
+            <div className="console-rim" aria-hidden="true"><i /><i /><i /><b /></div>
+            <div className="console-ship">
+              <FlightScene destination={s.current} flying={flying} running={atmosphereRunning} />
+              <div className="console-route" aria-hidden="true"><span>地球</span><ArrowLeftRight size={16} /><span>补给空间站</span></div>
+              <span className="console-location">{flying ? "正在航行" : s.current === "earth" ? "停靠地球" : "停靠补给空间站"}</span>
+            </div>
             <div className="console-task">
               <span className="eyebrow">{s.current === "earth" ? found ? "免费回访" : "第一段旅程" : s.badge ? "你的探索收藏" : "抵达后的任务"}</span>
           <div className="voyage-action" aria-live="polite">
@@ -209,7 +217,7 @@ export function SpaceMap({
               {courseDone(progress, 2) && <div className="console-navigation"><MissionMapArt pieces={3} installed /><span>第 3 课的探险地图，已装进驾驶舱</span></div>}
             </div>
           </section>
-          {found && <p className="future-destination">远方目标：{nextNode.name} · 筹备中。现在可以回访补给站，继续复习。</p>}
+          {found && !flying && <p className="future-destination">远方目标：{nextNode.name} · 筹备中。现在可以回访补给站，继续复习。</p>}
           <UniverseOverview space={s} regionIndex={regionIndex} setRegionIndex={setRegionIndex} flying={flying} />
           <div className="voyage-bottom">
             <span>游戏航线 · 非真实比例 · 补给空间站为虚构设施</span>

@@ -41,6 +41,20 @@ function finishForest(): Progress {
   return state;
 }
 describe("saved progress and planet route", () => {
+  it("preserves optional v4 motion preferences and safely ignores malformed or legacy settings", () => {
+    expect(parseProgress(JSON.stringify(initialProgress))).not.toHaveProperty("preferences");
+    for (const ambientMotion of [true, false]) {
+      const state = { ...initialProgress, preferences: { ambientMotion } };
+      expect(parseProgress(JSON.stringify(state))).toEqual(state);
+    }
+    for (const preferences of [null, false, [], {}, { ambientMotion: "false" }, { ambientMotion: 0 }]) {
+      const restored = parseProgress(JSON.stringify({ ...initialProgress, completed: [0], preferences }));
+      expect(restored).not.toHaveProperty("preferences");
+      expect(restored.completed).toEqual([0]);
+    }
+    expect(parseProgress(JSON.stringify({ ...initialProgress, version: 3, preferences: { ambientMotion: false } })))
+      .not.toHaveProperty("preferences");
+  });
   it("applies fast consecutive tile choices to the latest draft without exceeding the tile supply", () => {
     let state = openPlanet(finishForest(), "dunes");
     state = updateBlendDraft(state, (draft) => [...draft, "a"]);
@@ -196,6 +210,19 @@ function finishCourse(state: Progress) {
   return { ...state, speakingCompleted: true };
 }
 describe("sequential courses", () => {
+  it("keeps motion preferences global across courses, preview selection and refresh without granting rewards", () => {
+    const completed = reconcileRewards({ ...finishCourse(initialProgress), preferences: { ambientMotion: false } });
+    const second = selectCourse(completed, 1);
+    expect(second.preferences).toEqual({ ambientMotion: false });
+    expect(second.space).toEqual(completed.space);
+    expect(second.records[lessons[0].id]).not.toHaveProperty("preferences");
+    const restored = parseProgress(JSON.stringify(selectCourse(second, 0)));
+    expect(selectCourse(restored, 1).preferences).toEqual({ ambientMotion: false });
+    const preview = selectCourseForPreview({ ...initialProgress, preferences: { ambientMotion: false } }, 7);
+    expect(preview.preferences).toEqual({ ambientMotion: false });
+    expect(preview.space).toEqual(initialProgress.space);
+    expect(courseUnlocked(preview, 1)).toBe(false);
+  });
   it("requires all three stages before the next course and never opens unimplemented courses", () => {
     expect(selectCourse(initialProgress, 1)).toBe(initialProgress);
     expect(courseUnlocked(finishForest(), 1)).toBe(false);

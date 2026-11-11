@@ -10,6 +10,7 @@ export type Progress = {
   space: SpaceProgress;
   dialogue?: DialogueState;
   practice?: PracticeState;
+  preferences?: { ambientMotion: boolean };
   lessonIndex: number;
   records: Record<string, LessonProgress>;
   step: number;
@@ -332,6 +333,14 @@ export function parseProgress(raw: string | null): Progress {
       typeof v.volume === "number" && Number.isFinite(v.volume)
         ? Math.min(1, Math.max(0, v.volume))
         : 0.8;
+    if (
+      v.version === 4 &&
+      v.preferences &&
+      typeof v.preferences === "object" &&
+      !Array.isArray(v.preferences) &&
+      typeof v.preferences.ambientMotion === "boolean"
+    )
+      state.preferences = { ambientMotion: v.preferences.ambientMotion };
     state.page = [
       "space",
       "courses",
