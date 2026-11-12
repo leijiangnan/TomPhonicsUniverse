@@ -478,6 +478,6 @@ export const explorationRegions = spaceRegions.map((region, index) => ({
   ...region,
   nodes: index === 0 ? [region.nodes[0], supplyStation, ...region.nodes.slice(1)] : region.nodes,
 }));
-export function nextExplorationNode(stationVisited: boolean) {
-  return explorationRegions[0].nodes[stationVisited ? 2 : 1];
+export function nextExplorationNode(visited: ReadonlySet<string>) {
+  return explorationRegions[0].nodes.find((node) => !visited.has(node.id));
 }

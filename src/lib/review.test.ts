@@ -25,6 +25,7 @@ function doneRecord(lessonIndex: number): LessonProgress {
   return {
     step: lesson.steps.length - 1,
     completed: lesson.steps.map((_, i) => i),
+    phonicsCards: {},
     blendRound: 0,
     blendCompleted: lesson.blendRounds.map((_, i) => i),
     blendDraft: [],

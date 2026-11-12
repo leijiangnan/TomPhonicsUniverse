@@ -4,6 +4,8 @@ import { BlendingChallenge } from "./BlendingChallenge";
 import {
   checkBlend,
   completeStep,
+  phonicsCardIds,
+  visitPhonicsCard,
   initialProgress,
   openPlanet,
   parseProgress,
@@ -27,8 +29,11 @@ function renderChallenge(progress: Progress) {
 }
 
 function solvedFirstRound() {
-  let state = { ...initialProgress };
-  for (let index = 0; index < 3; index++) state = completeStep(state);
+  let state = openPlanet(initialProgress, "forest");
+  for (let index = 0; index < 3; index++) {
+    for (const card of phonicsCardIds(state)) state = visitPhonicsCard(state, card);
+    state = completeStep(state);
+  }
   state = openPlanet(state, "dunes");
   state = updateBlendDraft(state, ["a", "t"]);
   return checkBlend(state);

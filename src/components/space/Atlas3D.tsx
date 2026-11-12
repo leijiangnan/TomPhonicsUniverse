@@ -7,7 +7,7 @@ type Group = import("three").Group;
 type Material = import("three").Material;
 
 // The atlas is an illustration. Its shapes are not scientific surface maps or distances.
-function makeObject(T: Three, node: CatalogNode, material: (color: number, glow?: boolean) => Material) {
+export function makeObject(T: Three, node: CatalogNode, material: (color: number, glow?: boolean) => Material) {
   const root = new T.Group();
   const n = node.number;
   const facility = node.id === "station" || [2, 6, 7, 39].includes(n);

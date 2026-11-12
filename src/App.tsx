@@ -50,6 +50,8 @@ import {
   currentCourse,
   checkBlend,
   completeStep,
+  canCompletePhonicsStep,
+  visitPhonicsCard,
   dunesDone,
   forestDone,
   openPlanet,
@@ -302,6 +304,7 @@ export default function App() {
     let finished = false;
     const saved = await setProgress((p) => {
       if (p.page !== "lesson" || p.lessonIndex !== progress.lessonIndex || p.step !== expected) return p;
+      if (!review && !canCompletePhonicsStep(p)) return p;
       const next = review ? completeReviewSound(p) : completeStep(p);
       finished = expected === STEP_COUNT - 1 && forestDone(next);
       return finished ? { ...next, page: "map" } : next;
@@ -311,6 +314,12 @@ export default function App() {
   const changeStep = (n: number) => {
     setProgress((p) => p.page === "lesson" && p.lessonIndex === progress.lessonIndex && n >= 0 && n < STEP_COUNT &&
       (n === 0 || p.completed.includes(n - 1) || p.completed.includes(n)) ? { ...p, step: n } : p);
+  };
+  const visitCard = (cardId: string) => {
+    const expectedStep = progress.step;
+    const expectedLesson = progress.lessonIndex;
+    void setProgress((p) => p.page === "lesson" && p.lessonIndex === expectedLesson && p.step === expectedStep
+      ? visitPhonicsCard(p, cardId) : p);
   };
   const changeDraft = (change: BlendDraftChange) => {
     setFeedback("");
@@ -482,9 +491,18 @@ export default function App() {
         <SpaceMap
           progress={progress}
           atmosphereRunning={atmosphereRunning}
+          animateFlights={ambientEnabled && !reducedMotion}
           onPlay={audio}
           onPractice={practicePool(progress).length ? () => setProgress((p) => startPractice(p)) : undefined}
-          onTravel={(target) => setProgress((p) => travel(p, target), true)}
+          onTravel={async (target) => {
+            let moved = false;
+            const saved = await setProgress((p) => {
+              const next = travel(p, target);
+              moved = next.space.current === target && p.space.current !== target;
+              return next;
+            }, true);
+            return saved && moved;
+          }}
           onConfirm={(step) =>
             setProgress((p) => confirmStation(p, step), true)
           }
@@ -521,6 +539,7 @@ export default function App() {
       ) : progress.page === "lesson" ? (
         <PhonicsLesson
           progress={progress}
+          onVisit={visitCard}
           onStep={changeStep}
           onComplete={finishLetter}
           onPlay={audio}
@@ -607,6 +626,7 @@ export default function App() {
       )}
       {modal && (
         <Dialog
+          className={modal === "celebration" ? "celebration-dialog" : undefined}
           title={
             modal === "sound"
               ? "声音与音乐"

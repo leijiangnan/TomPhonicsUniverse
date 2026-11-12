@@ -2,6 +2,7 @@ import { lessons } from "../data/lesson";
 import { reviewForLesson } from "../data/reviews";
 import { courseDone, lessonProgress, parseProgress, type Progress } from "./progress";
 import { fuel } from "./space";
+import { isSpaceNode } from "../data/space/route";
 
 export const MAX_BACKUP_BYTES = 1_000_000;
 const isObject = (value: unknown): value is Record<string, unknown> => Boolean(value && typeof value === "object" && !Array.isArray(value));
@@ -11,6 +12,11 @@ function indices(value: unknown, count: number) {
   return Array.isArray(value) && value.every((n) => Number.isInteger(n) && n >= 0 && n < count) && new Set(value).size === value.length;
 }
 const sameIndices = (a: number[], b: number[]) => a.length === b.length && [...a].sort((x, y) => x - y).every((n, i) => n === [...b].sort((x, y) => x - y)[i]);
+function samePhonicsCards(raw: unknown, clean: Record<string, string[]>) {
+  return isObject(raw) && Object.keys(raw).length === Object.keys(clean).length && Object.entries(raw).every(([id, cards]) =>
+    Array.isArray(cards) && cards.every((card) => typeof card === "string") && new Set(cards).size === cards.length &&
+    Array.isArray(clean[id]) && JSON.stringify([...cards].sort()) === JSON.stringify([...clean[id]].sort()));
+}
 
 export function backupSummary(progress: Progress) {
   return { completedCourses: lessons.filter((_, n) => courseDone(progress, n)).length,
@@ -45,13 +51,15 @@ export function readBackup(text: string): Progress {
     const legacyReview = reviewForLesson(id);
     const maxSteps = version === 1 ? 4 : lessons[n].steps.length;
     if (!indices(raw.completed, maxSteps) || !Number.isInteger(raw.step) || Number(raw.step) < 0 || Number(raw.step) >= maxSteps) invalid("字母学习记录不完整或含重复步骤。");
+    const clean = lessonProgress(restored, n);
+    if (Object.hasOwn(raw, "phonicsCards") && !samePhonicsCards(raw.phonicsCards, clean.phonicsCards ?? {}))
+      invalid("字母卡片点读记录无效，当前进度没有改变。");
     if (version > 1) {
       const legacyReviewDone = legacyReview && !Object.hasOwn(raw, "reviewDialogueStep");
       if (!indices(raw.blendCompleted, legacyReviewDone ? legacyReview.legacyBlendRoundCount : lessons[n].blendRounds.length) ||
         !Array.isArray(raw.blendDraft) || !raw.blendDraft.every((value) => typeof value === "string") ||
         typeof raw.speakingCompleted !== "boolean" || typeof raw.blendSolved !== "boolean" ||
         !Number.isInteger(raw.blendRound) || Number(raw.blendRound) < 0 || Number(raw.blendRound) >= lessons[n].blendRounds.length) invalid("拼读或口语记录不完整。");
-      const clean = lessonProgress(restored, n);
       if (!sameIndices(raw.completed as number[], clean.completed) ||
         (!legacyReviewDone && !sameIndices(raw.blendCompleted as number[], clean.blendCompleted)) || raw.speakingCompleted !== clean.speakingCompleted)
         invalid("学习记录与先备条件不一致，当前进度没有改变。");
@@ -71,7 +79,7 @@ export function readBackup(text: string): Progress {
       (!isObject(source.preferences) || typeof source.preferences.ambientMotion !== "boolean"))
       invalid("存档中的背景动效设置无效，当前进度没有改变。");
     const space = source.space;
-    if (!isObject(space) || !["earth", "station"].includes(String(space.current)) || !Array.isArray(space.transactions) || space.transactions.length > 1000 ||
+    if (!isObject(space) || !isSpaceNode(space.current) || !Array.isArray(space.transactions) || space.transactions.length > 1000 ||
       !Number.isInteger(space.stationStep) || Number(space.stationStep) < 0 || Number(space.stationStep) > 3 || typeof space.badge !== "boolean") invalid("探索存档不完整。");
     const expected = new Map(restored.space.transactions.map((transaction) => [transaction.id, transaction.amount]));
     const seen = new Set<string>();

@@ -1,6 +1,8 @@
 import { lessons } from "../data/lesson";
 import type { Progress } from "./progress";
-export type SpaceNodeId = "earth" | "station";
+import { FIRST_TRAVEL_COSTS, isSpaceNode, routeNode, travelEventId, travelNodes, type SpaceNodeId } from "../data/space/route";
+import { nextExplorationNode } from "../data/space/catalog";
+export type { SpaceNodeId } from "../data/space/route";
 export type Transaction = { id: string; amount: number };
 export type SpaceProgress = {
   current: SpaceNodeId;
@@ -14,11 +16,27 @@ export const initialSpace = (): SpaceProgress => ({
   stationStep: 0,
   badge: false,
 });
-export const STATION_COST = 50;
+export const STATION_COST = FIRST_TRAVEL_COSTS.station;
 export const fuel = (space: SpaceProgress) =>
   space.transactions.reduce((total, t) => total + t.amount, 0);
 export const stationFound = (space: SpaceProgress) =>
   space.transactions.some((t) => t.id === "travel:station:first");
+export const nodeVisited = (space: SpaceProgress, id: string) => isSpaceNode(id) &&
+  (id === "earth" || space.transactions.some((t) => t.id === travelEventId(id)));
+export const visitedNodes = (space: SpaceProgress) => travelNodes.filter((node) => nodeVisited(space, node.id));
+export function nextDestination(space: SpaceProgress) {
+  const next = nextExplorationNode(new Set(visitedNodes(space).map((node) => node.id)));
+  return next && isSpaceNode(next.id) ? routeNode(next.id) : undefined;
+}
+export function travelStatus(space: SpaceProgress, target: string) {
+  if (!isSpaceNode(target)) return { kind: "unavailable" as const, cost: 0, shortfall: 0, previous: undefined };
+  const node = routeNode(target);
+  const cost = nodeVisited(space, target) ? 0 : node.cost;
+  const shortfall = Math.max(0, cost - fuel(space));
+  const kind = target === space.current ? "current" : nodeVisited(space, target) ? "free"
+    : node.previous && !nodeVisited(space, node.previous) ? "locked" : shortfall > 0 ? "fuel" : "ready";
+  return { kind, cost, shortfall, previous: node.previous };
+}
 export function earnedRewards(p: Progress): Transaction[] {
   const result: Transaction[] = [];
   for (const [i, lesson] of lessons.entries()) {
@@ -46,23 +64,15 @@ export function restoreSpace(raw: unknown, p: Progress): SpaceProgress {
   const v =
     raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
   const rewards = earnedRewards(p);
-  const hasTravel =
-    Array.isArray(v.transactions) &&
-    v.transactions.some(
-      (t) =>
-        t &&
-        typeof t === "object" &&
-        t.id === "travel:station:first" &&
-        t.amount === -STATION_COST,
-    );
   base.transactions = rewards;
-  if (hasTravel && fuel(base) >= STATION_COST)
-    base.transactions.push({
-      id: "travel:station:first",
-      amount: -STATION_COST,
-    });
+  for (const node of travelNodes.slice(1)) {
+    const valid = Array.isArray(v.transactions) && v.transactions.some((t) =>
+      t && typeof t === "object" && t.id === travelEventId(node.id) && t.amount === -node.cost);
+    if (!valid || fuel(base) < node.cost) break;
+    base.transactions.push({ id: travelEventId(node.id), amount: -node.cost });
+  }
+  if (isSpaceNode(v.current) && nodeVisited(base, v.current)) base.current = v.current;
   if (stationFound(base)) {
-    base.current = v.current === "station" ? "station" : "earth";
     base.stationStep =
       typeof v.stationStep === "number" &&
       Number.isInteger(v.stationStep) &&
@@ -89,24 +99,11 @@ export function reconcileRewards(p: Progress): Progress {
 }
 export function travel(p: Progress, target: SpaceNodeId): Progress {
   const state = reconcileRewards(p);
-  if (target !== "earth" && target !== "station") return p;
-  if (target === state.space.current) return state;
+  const status = travelStatus(state.space, target);
+  if (status.kind !== "ready" && status.kind !== "free") return state;
   const space = state.space;
-  if (target === "station" && !stationFound(space)) {
-    if (fuel(space) < STATION_COST) return state;
-    return {
-      ...state,
-      space: {
-        ...space,
-        current: target,
-        transactions: [
-          ...space.transactions,
-          { id: "travel:station:first", amount: -STATION_COST },
-        ],
-      },
-    };
-  }
-  return { ...state, space: { ...space, current: target } };
+  return { ...state, space: { ...space, current: target,
+    transactions: status.kind === "free" ? space.transactions : [...space.transactions, { id: travelEventId(target), amount: -status.cost }] } };
 }
 export function confirmStation(p: Progress, expected: number): Progress {
   const s = p.space;

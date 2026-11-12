@@ -1,13 +1,32 @@
 import { describe, expect, it } from "vitest";
 import { backupSummary, createBackup, MAX_BACKUP_BYTES, readBackup } from "./backup";
 import { hintPractice, observePractice, startPractice } from "./practice";
-import { initialProgress, parseProgress, selectCourse } from "./progress";
+import { initialProgress, parseProgress, selectCourse, openPlanet, visitPhonicsCard } from "./progress";
 import { fuel, reconcileRewards, travel } from "./space";
 import { lessons } from "../data/lesson";
 import { reviewForLesson } from "../data/reviews";
 
 const learned = () => reconcileRewards({ ...initialProgress, completed: [0, 1, 2], blendCompleted: [0, 1], speakingCompleted: true, volume: .4 });
 describe("reviewable local backups", () => {
+  it("round-trips partial phonics card visits and accepts old saves without visits", () => {
+    let p = visitPhonicsCard(openPlanet(initialProgress, "forest"), "sock");
+    p = visitPhonicsCard(p, "sound");
+    expect(readBackup(createBackup(p)).phonicsCards).toEqual({ s: ["sound", "sock"] });
+    const older = { ...learned() };
+    delete older.phonicsCards;
+    const restored = readBackup(createBackup(older));
+    expect(restored.completed).toEqual([0, 1, 2]);
+    expect(restored.phonicsCards).toEqual({});
+    const archive = { ...selectCourse(learned(), 1), records: {
+      [lessons[0].id]: { ...selectCourse(learned(), 1).records[lessons[0].id], phonicsCards: { s: ["sound", "sun"] } },
+    } };
+    expect(readBackup(createBackup(archive)).records[lessons[0].id].phonicsCards).toEqual({ s: ["sound", "sun"] });
+  });
+  it("rejects malformed, duplicate, foreign and locked-step card visits before importing", () => {
+    for (const phonicsCards of [null, false, [], { s: "sound" }, { s: ["sun", "sun"] },
+      { s: ["apple"] }, { a: ["sound"] }, { unknown: ["sound"] }, { s: [1] }])
+      expect(() => readBackup(JSON.stringify({ ...initialProgress, phonicsCards }))).toThrow("卡片点读记录无效");
+  });
   it("round-trips explicit motion choices and accepts existing backups without settings", () => {
     expect(readBackup(createBackup(learned()))).not.toHaveProperty("preferences");
     for (const ambientMotion of [true, false]) {

@@ -9,6 +9,7 @@ export type Progress = {
   version: 4;
   space: SpaceProgress;
   dialogue?: DialogueState;
+  phonicsCards?: Record<string, string[]>;
   practice?: PracticeState;
   preferences?: { ambientMotion: boolean };
   lessonIndex: number;
@@ -39,6 +40,7 @@ export type LessonProgress = Pick<
   | "reviewPlacements"
   | "reviewDialogueStep"
   | "dialogue"
+  | "phonicsCards"
 >;
 export const initialProgress: Progress = {
   version: 4,
@@ -47,6 +49,7 @@ export const initialProgress: Progress = {
   records: {},
   step: 0,
   completed: [],
+  phonicsCards: {},
   volume: 0.8,
   page: "map",
   blendRound: 0,
@@ -89,6 +92,42 @@ export function forestDone(progress: Progress) {
   return lessons[progress.lessonIndex].steps.every((_, n) =>
     progress.completed.includes(n),
   );
+}
+
+function phonicsStep(progress: Progress) {
+  const lesson = lessons[progress.lessonIndex];
+  return lesson && !reviewForLesson(lesson.id) && Number.isInteger(progress.step)
+    ? lesson.steps[progress.step]
+    : undefined;
+}
+function phonicsStepReachable(progress: Progress) {
+  return Boolean(phonicsStep(progress)) && (progress.step === 0 ||
+    progress.completed.includes(progress.step - 1) || progress.completed.includes(progress.step));
+}
+/** Stable card IDs describe a deliberate tap, not successful playback or mastery. */
+export function phonicsCardIds(progress: Progress): string[] {
+  const step = phonicsStep(progress);
+  return step ? ["sound", ...step.words.map((word) => word.word)] : [];
+}
+export function visitedPhonicsCards(progress: Progress): string[] {
+  const step = phonicsStep(progress);
+  const visited = step && progress.phonicsCards?.[step.id];
+  return phonicsStepReachable(progress) && Array.isArray(visited)
+    ? phonicsCardIds(progress).filter((id) => visited.includes(id))
+    : [];
+}
+export function canCompletePhonicsStep(progress: Progress) {
+  const ids = phonicsCardIds(progress);
+  return progress.page === "lesson" && phonicsStepReachable(progress) && ids.length > 0 &&
+    ids.every((id) => visitedPhonicsCards(progress).includes(id));
+}
+export function visitPhonicsCard(progress: Progress, cardId: string): Progress {
+  if (progress.page !== "lesson" || !phonicsStepReachable(progress) || !phonicsCardIds(progress).includes(cardId)) return progress;
+  const step = phonicsStep(progress)!;
+  const visited = visitedPhonicsCards(progress);
+  if (visited.includes(cardId)) return progress;
+  return { ...progress, phonicsCards: { ...progress.phonicsCards,
+    [step.id]: phonicsCardIds(progress).filter((id) => id === cardId || visited.includes(id)) } };
 }
 
 export function dunesDone(progress: Progress) {
@@ -137,6 +176,7 @@ export function lessonSnapshot(p: Progress): LessonProgress {
   return {
     step,
     completed,
+    phonicsCards: p.phonicsCards ?? {},
     blendRound,
     blendCompleted,
     blendDraft,
@@ -214,6 +254,16 @@ function sanitize(
     state.completed.length,
     lesson.steps.length - 1,
   );
+  state.phonicsCards = {};
+  if (!review && v.phonicsCards && typeof v.phonicsCards === "object" && !Array.isArray(v.phonicsCards)) {
+    for (const [stepIndex, step] of lesson.steps.entries()) {
+      if (stepIndex > state.completed.length) continue;
+      const cards = (v.phonicsCards as Record<string, unknown>)[step.id];
+      if (!Array.isArray(cards)) continue;
+      const valid = ["sound", ...step.words.map((word) => word.word)].filter((id) => cards.includes(id));
+      state.phonicsCards[step.id] = valid;
+    }
+  }
   if (review) {
     state.reviewSounds = (
       Object.hasOwn(v, "reviewSounds")
@@ -367,6 +417,7 @@ export function parseProgress(raw: string | null): Progress {
   }
 }
 export function completeStep(progress: Progress): Progress {
+  if (!canCompletePhonicsStep(progress)) return progress;
   return {
     ...progress,
     completed: [...new Set([...progress.completed, progress.step])].sort(
@@ -414,6 +465,7 @@ export function openPlanet(progress: Progress, id: PlanetId): Progress {
       page: "lesson",
       step: forestDone(progress) ? 0 : progress.step,
       ...(review && forestDone(progress) ? { reviewSounds: [] } : {}),
+      ...(!review && forestDone(progress) ? { phonicsCards: {} } : {}),
     };
   if (id === "dunes")
     return dunesDone(progress)

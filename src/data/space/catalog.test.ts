@@ -16,7 +16,8 @@ it("uses the atlas order for the full stage route and next discovery", () => {
   expect(explorationRegions[0].nodes.map(node => node.name)).toEqual([
     "地球", "补给空间站", "国际空间站", "月球", "月球背面", "地月 L2 点", "月球轨道空间站", "太阳观测站", "金星",
   ]);
-  expect(nextExplorationNode(false).id).toBe("station");
-  expect(nextExplorationNode(true).name).toBe("国际空间站");
+  expect(nextExplorationNode(new Set(["earth"]))?.id).toBe("station");
+  expect(nextExplorationNode(new Set(["earth", "station"]))?.name).toBe("国际空间站");
+  expect(nextExplorationNode(new Set(explorationRegions[0].nodes.map((node) => node.id)))).toBeUndefined();
   expect(explorationRegions.slice(1).map(region => region.nodes)).toEqual(spaceRegions.slice(1).map(region => region.nodes));
 });

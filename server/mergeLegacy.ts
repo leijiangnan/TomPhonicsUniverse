@@ -1,6 +1,6 @@
 import { lessons } from "../src/data/lesson";
 import { courseDone, lessonProgress, lessonSnapshot, parseProgress, type LessonProgress, type Progress } from "../src/lib/progress";
-import { earnedRewards, stationFound, STATION_COST } from "../src/lib/space";
+import { restoreSpace, visitedNodes } from "../src/lib/space";
 import { emptyPractice } from "../src/lib/practice";
 
 const union = (a: number[], b: number[]) => [...new Set([...a, ...b])].sort((x, y) => x - y);
@@ -27,7 +27,10 @@ export function mergeLegacyProgress(current: Progress, legacy: Progress): Progre
       rewards: [...new Set([...a.dialogue.rewards, ...b.dialogue.rewards])],
       assisted: [...new Set([...a.dialogue.assisted, ...b.dialogue.assisted])],
     } : a.dialogue ?? b.dialogue;
+    const phonicsCards = Object.fromEntries([...new Set([...Object.keys(a.phonicsCards ?? {}), ...Object.keys(b.phonicsCards ?? {})])]
+      .map((id) => [id, [...new Set([...(a.phonicsCards?.[id] ?? []), ...(b.phonicsCards?.[id] ?? [])])]]));
     records[lesson.id] = { ...winner, completed: union(a.completed, b.completed),
+      phonicsCards,
       blendCompleted: union(a.blendCompleted, b.blendCompleted), speakingCompleted: a.speakingCompleted || b.speakingCompleted,
       reviewSounds: union(a.reviewSounds, b.reviewSounds), reviewPlacements: union(a.reviewPlacements, b.reviewPlacements),
       reviewDialogueStep: Math.max(a.reviewDialogueStep, b.reviewDialogueStep), ...(dialogue ? { dialogue } : {}) };
@@ -41,13 +44,12 @@ export function mergeLegacyProgress(current: Progress, legacy: Progress): Progre
   for (const observation of extraPractice.observations) {
     if (!seen.has(JSON.stringify(observation))) observations.push({ ...observation, turn: ++turn });
   }
-  const visited = stationFound(preferred.space) ? preferred.space : other.space;
+  const visited = visitedNodes(legacy.space).length > visitedNodes(current.space).length ? legacy.space : current.space;
   const merged: Progress = { ...preferred, ...active, records,
     practice: { ...mainPractice, turn, observations: observations.slice(-120) },
-    space: { ...visited, stationStep: Math.max(current.space.stationStep, legacy.space.stationStep) as 0 | 1 | 2 | 3,
-      transactions: [] } };
+    space: visited };
   if (!active.dialogue) delete merged.dialogue;
-  merged.space.transactions = earnedRewards(merged);
-  if (stationFound(visited)) merged.space.transactions.push({ id: "travel:station:first", amount: -STATION_COST });
+  merged.space = restoreSpace({ ...visited, stationStep: Math.max(current.space.stationStep, legacy.space.stationStep),
+    transactions: [...current.space.transactions, ...legacy.space.transactions] }, merged);
   return parseProgress(JSON.stringify(merged));
 }

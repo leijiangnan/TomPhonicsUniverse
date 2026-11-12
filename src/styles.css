@@ -469,6 +469,7 @@ button:hover:not(:disabled):not([aria-disabled="true"]) {
   --letter: #7c6197;
 }
 .letter-tile {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -519,6 +520,18 @@ button:hover:not(:disabled):not([aria-disabled="true"]) {
   right: 12px;
   top: 12px;
   color: #7b9570;
+}
+.classroom .card-visited { border-color: #7b9f70; }
+.card-visit-mark { position: absolute; top: 7px; left: 7px; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: #d8ebcd; color: #355a34; }
+.phonics-card-status { color: #c4d6d3; font-size: 16px; text-align: center; }
+.phonics-card-status strong { color: #f3ce78; }
+.phonics-card-status.ready strong { color: #b3dfae; }
+@media (max-width: 599px) {
+  .lesson-page .phonics-controls { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; }
+  .phonics-controls .phonics-card-status { grid-column: 1 / -1; grid-row: 1; font-size: 15px; }
+  .phonics-controls .button { padding-left: 10px; padding-right: 10px; }
+  .card-visit-mark { width: 24px; height: 24px; }
+  .word-card .card-visit-mark { top: 5px; left: 4px; }
 }
 .word-art {
   display: block;
@@ -1967,6 +1980,12 @@ input[type="range"] {
 .continue-course {
   margin: 0 0 20px;
 }
+.map-heading-actions { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+.map-heading-actions .continue-course { margin: 0; }
+@media (max-width: 800px) {
+  .map-heading-actions { flex-direction: column; align-items: flex-end; gap: 10px; }
+  .map-heading-actions .continue-course { min-height: 48px; padding: 10px; font-size: 14px; }
+}
 .course-unit {
   margin: 32px 0;
   padding: 24px;
@@ -2967,6 +2986,21 @@ input[type="range"] {
 .startup-panel { max-width: 620px; margin: 15vh auto; padding: 28px; text-align: center; }
 .startup-panel h1 { font-size: clamp(28px, 4vw, 40px); }
 .startup-panel p { line-height: 1.8; margin: 22px 0; }
+.console-utilities { margin-top: 14px; }
+.voyage-count { display: inline-block; white-space: nowrap; }
+.console-utilities .button { min-height: 48px; padding: 9px 14px; font-size: 16px; }
+.voyage-error { color: #ffe0ac; font-weight: 800; line-height: 1.6; }
+.node-travel-actions { padding: 14px; margin: 12px 0 18px; border: 1px solid #b9cbb4; border-radius: 14px; background: #e9f0df; }
+.node-travel-actions p { margin: 0 0 12px; line-height: 1.6; }
+.node-travel-actions .button { width: 100%; min-height: 52px; }
+.node-travel-actions .voyage-error { margin: 12px 0 0; color: #913c2a; }
+.revisit-picker > p { line-height: 1.7; }
+.revisit-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.revisit-grid button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-width: 0; min-height: 144px; padding: 14px; border: 1px solid #b9cbb4; border-radius: 16px; background: #e9f0df; color: #294637; }
+.revisit-grid button svg { display: block; width: 104px; height: 80px; }
+.revisit-grid button strong { font-size: 20px; }
+.revisit-grid button > span:last-child { font-size: 15px; }
+.revisit-picker .voyage-error { color: #913c2a; }
 .console-budget { display: flex; align-items: center; gap: 13px; font-size: 14px; color: #c4dbd1; margin-top: 8px; }
 .console-budget > progress { width: min(160px, 25%); height: 10px; accent-color: #bee3ad; }
 .console-budget > strong { color: #f3db9c; }
@@ -3609,4 +3643,154 @@ dialog.word-life-dialog:focus { outline: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .word-life-card { cursor: default; }
+}
+
+.flight-route-fallback { display: flex; align-items: center; justify-content: space-around; gap: 10px; padding: 30px 12px; }
+.flight-route-fallback > svg { width: 31%; height: 70%; transform: none; }
+.flight-route-fallback > svg:nth-child(2) { width: 18%; transform: rotate(35deg); }
+
+/* Landscape tasks fit the available Safari viewport, including its browser bars.
+   Keep normal document scrolling as a fallback for zoom and larger text. */
+@media (min-width: 801px) and (orientation: landscape) and (max-height: 900px) {
+  .app-shell { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+  .topbar { height: 64px; gap: 18px; }
+  .activity-heading,
+  .game-page .activity-heading,
+  .review-page .activity-heading,
+  .voyage-page .activity-heading { padding: 14px 0 12px; }
+  .activity-heading h1,
+  .review-page .activity-heading h1 { font-size: 28px; }
+  .activity-heading p,
+  .game-page .activity-heading p,
+  .review-page .activity-heading p { margin-top: 6px; font-size: 16px; line-height: 1.4; }
+  .activity-controls,
+  .review-page .activity-controls { margin-top: 14px; }
+  .activity-controls .button { min-height: 52px; padding: 11px 22px; }
+  .mission-brief,
+  .game-page .mission-brief { margin-bottom: 10px; gap: 10px; }
+  .mission-brief > svg,
+  .game-page .mission-brief > svg { height: 48px; flex-basis: 80px; }
+  .mission-brief p { font-size: 15px; margin-top: 2px; }
+
+  .course-banner { padding-top: 10px; }
+  .map-heading { padding: 14px 0 12px; }
+  .map-heading h1 { font-size: 30px; }
+  .map-heading p { font-size: 16px; margin-top: 5px; }
+  .map-heading-actions { gap: 10px; }
+  .map-heading-actions .continue-course { min-height: 48px; padding: 10px 14px; font-size: 16px; }
+  .map-page .planet-card { min-height: 0; padding: 14px; }
+  .map-page .planet-illustration { height: clamp(100px, 18svh, 150px); }
+  .map-page .planet-illustration > svg { max-height: 150px; }
+  .map-page .planet-card h2 { font-size: 22px; }
+  .map-page .planet-action { margin-top: 10px; min-height: 48px; }
+  .map-practice-entry { margin-top: 12px; padding: 8px 14px; }
+
+  .classroom { padding: 18px 22px; }
+  .word-card { min-height: 230px; padding-top: 18px; padding-bottom: 14px; }
+  .word-card .word-art { height: clamp(110px, 17svh, 142px); }
+
+  .game-page .crafting-board:not(.reading-board) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: "listen slots" "model feedback" "model bank";
+    gap: 8px 28px;
+    min-height: 280px;
+    padding: 18px;
+    justify-items: center;
+  }
+  .blend-listening { grid-area: listen; flex-wrap: wrap; }
+  .game-page .blend-model { grid-area: model; margin: 0; width: 100%; padding: 8px; align-self: center; }
+  .game-page .blend-model > span { font-size: 13px; }
+  .game-page .blend-model > div { flex-wrap: wrap; }
+  .game-page .word-slots { grid-area: slots; margin: 0; gap: 10px; }
+  .game-page .letter-slot { width: 72px; height: 76px; }
+  .game-page .game-feedback { grid-area: feedback; height: auto; min-height: 48px; text-align: center; font-size: 17px; }
+  .game-page .letter-bank { grid-area: bank; gap: 12px; }
+  .game-page .letter-option { width: 64px; height: 64px; font-size: 40px; }
+  .reading-board { min-height: 280px; padding: 18px; }
+  .reading-word { margin: 10px 0 6px; padding: 6px; }
+  .reading-segment { height: 90px; width: 90px; }
+  .reading-segment b { font-size: 62px; }
+  .reading-segment > span { bottom: 9px; }
+  .reading-support { margin-top: 10px; }
+  .reading-note { margin-top: 8px; }
+
+  .speaking-board {
+    display: grid;
+    grid-template-columns: minmax(220px, .8fr) minmax(0, 1.2fr);
+    grid-template-rows: auto auto minmax(76px, auto);
+    gap: 12px 26px;
+    padding: 20px 26px;
+    min-height: 280px;
+    justify-items: center;
+  }
+  .speaking-host { top: 12px; left: 12px; width: 54px; }
+  .speaking-host > svg { height: 64px; }
+  .speaking-board > .word-art { grid-column: 1; grid-row: 1 / 4; width: 100%; max-width: 320px; height: 210px; }
+  .spoken-question { grid-column: 2; max-width: 100%; min-height: 52px; font-size: 26px; padding: 8px 16px; }
+  .speaking-board .model-answer { grid-column: 2; min-width: 0; max-width: 100%; font-size: 21px; }
+  .speaking-board .temporary-recording { grid-column: 2; margin-top: 0; align-self: start; }
+  .recording-buttons button { padding: 9px 12px; font-size: 17px; }
+
+  .shop-scene { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .shop-npc { grid-column: 1; grid-row: 1; padding: 14px; gap: 12px; }
+  .shop-robot { width: 76px; }
+  .shop-robot .robot { height: 88px; }
+  .shop-bubble { padding: 12px; min-height: 60px; gap: 10px; font-size: 23px; }
+  .shop-counter { grid-column: 1; grid-row: 2; padding: 8px 12px; border-bottom: 0; }
+  .shop-counter .word-art { width: 100px; height: 76px; }
+  .shop-goods { gap: 12px; }
+  .shop-goods button { flex: 1; min-width: 0; flex-direction: column; padding: 6px; gap: 0; min-height: 120px; font-size: 18px; }
+  .shop-goods button span { display: block; text-align: center; }
+  .shop-goods button span > svg { vertical-align: middle; }
+  .speech-support { grid-column: 2; grid-row: 1 / 3; padding: 18px; display: flex; flex-direction: column; justify-content: center; gap: 12px; }
+  .hint-modes button { flex: 1; padding: 8px; }
+  .speech-models { flex-direction: column; gap: 4px; min-height: 0; }
+  .speech-models button { min-height: 52px; font-size: 21px; text-align: left; }
+  .shop-choice-prompt { margin: 0; }
+
+  .review-scan-page .review-scene { height: clamp(260px, 40svh, 330px); }
+  .review-placement-page .review-scene { height: clamp(230px, 35svh, 300px); }
+  .review-placement-page .review-scene-item { --item-size: 78px; }
+  .review-placement-page .review-scene-item.large { --item-size: 90px; }
+  .review-placement-page .review-scene-item.small { --item-size: 68px; }
+  .review-dialogue-layout { grid-template-columns: minmax(0, 1.2fr) minmax(360px, 1fr); gap: 16px; align-items: stretch; }
+  .review-speaking-page .review-scene { min-height: 0; height: auto; aspect-ratio: auto; }
+  .review-speaking-page .review-scene-item { --item-size: 82px; }
+  .review-speaking-page .review-scene-item.large { --item-size: 96px; }
+  .review-speaking-page .review-scene-item.small { --item-size: 70px; }
+  .review-speaking-page .review-dialogue-panel { min-height: 340px; padding: 14px; gap: 10px; display: grid; grid-template-columns: 48px minmax(0, 1fr); }
+  .review-speaking-page .review-dialogue-panel > .robot { width: 48px; height: 60px; align-self: start; }
+  .review-dialogue-lines { gap: 10px; }
+  .review-dialogue-lines button { padding: 10px; gap: 8px; }
+  .review-dialogue-panel .temporary-recording { grid-column: 1 / -1; align-self: start; }
+  .review-dialogue-panel .recording-buttons button { padding: 9px 10px; font-size: 16px; }
+
+  .practice-board { min-height: 250px; padding: 20px; }
+  .practice-word { margin-top: 12px; font-size: 88px; }
+  .practice-word.phrase { font-size: 68px; }
+  .practice-meaning { margin-bottom: 12px; }
+  .practice-observation { margin-top: 14px; }
+  .practice-summary { padding: 22px; gap: 16px; }
+  .practice-robot svg { height: 150px; }
+
+  .console-task { padding: 16px 22px; }
+  .flight-scene { height: clamp(180px, 28svh, 235px); }
+  .revisit-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .revisit-grid button { min-height: 112px; padding: 10px 6px; }
+  .revisit-grid button svg { width: 76px; height: 50px; }
+  .revisit-grid button strong { font-size: 18px; }
+
+  .celebration-dialog { max-width: 800px; }
+  .celebration-dialog .dialog-body { display: grid; grid-template-columns: minmax(160px, .65fr) minmax(0, 1.35fr); gap: 12px 20px; padding: 24px; }
+  .celebration-dialog h2 { grid-column: 1 / -1; margin: 0 36px 0 0; font-size: 25px; }
+  .celebration-dialog .celebration-planet { grid-column: 1; grid-row: 2 / 5; height: 180px; align-self: center; }
+  .celebration-dialog .celebration-planet > svg { width: 100%; height: 180px; }
+  .celebration-dialog .celebration-planet > span { right: 8%; bottom: 0; }
+  .celebration-dialog .celebration-message { grid-column: 2; margin: 0; font-size: 18px !important; line-height: 1.5; }
+  .celebration-dialog .celebration-fuel { grid-column: 2; margin: 0; padding: 10px; }
+  .celebration-dialog .celebration-learning { grid-column: 2; margin: 0; padding: 10px; }
+  .celebration-dialog .celebration-learning strong { font-size: 19px; }
+  .celebration-dialog .mission-brief { grid-column: 1 / -1; margin: 0; }
+  .celebration-dialog .full { grid-column: 1 / -1; margin-top: 0; min-height: 52px; padding: 11px 22px; }
 }

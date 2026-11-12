@@ -81,35 +81,37 @@ export function GalaxyMap({
               : count === 0 ? "先认声音，再拼单词，最后和家人开口说。" : count === 1 ? "声音线索找到了，接着去拼单词。" : "单词拼好啦，去和家人说一说。"}
           </p>
         </div>
-        <div
-          className="lit-total"
-          aria-label={`已点亮 ${count} / ${planets.length} 颗星球`}
-        >
-          <Star fill="currentColor" size={25} />
-          <strong>
-            {count} / {planets.length}
-          </strong>
-          <span>已点亮</span>
+        <div className="map-heading-actions">
+          <div
+            className="lit-total"
+            aria-label={`已点亮 ${count} / ${planets.length} 颗星球`}
+          >
+            <Star fill="currentColor" size={25} />
+            <strong>
+              {count} / {planets.length}
+            </strong>
+            <span>已点亮</span>
+          </div>
+          {count === 3 && (
+            <button
+              className="button primary continue-course"
+              onClick={
+                previewEnabled || currentCourse(progress) < 0
+                  ? onCourses
+                  : onContinue
+              }
+            >
+              {previewEnabled
+                ? "查看其他课程"
+                : currentCourse(progress) < 0
+                ? "查看学习路径"
+                : `继续第 ${currentCourse(progress) + 1} 课`}{" "}
+              <ArrowRight size={20} />
+            </button>
+          )}
         </div>
       </div>
       <MissionBrief progress={progress} />
-      {count === 3 && (
-        <button
-          className="button primary continue-course"
-          onClick={
-            previewEnabled || currentCourse(progress) < 0
-              ? onCourses
-              : onContinue
-          }
-        >
-          {previewEnabled
-            ? "查看其他课程"
-            : currentCourse(progress) < 0
-            ? "查看学习路径"
-            : `继续第 ${currentCourse(progress) + 1} 课`}{" "}
-          <ArrowRight size={20} />
-        </button>
-      )}
       <section
         className="planet-route"
         aria-label="全部星球：认声音、拼单词、开口说"

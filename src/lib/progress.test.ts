@@ -22,6 +22,10 @@ import {
   currentCourse,
   selectCourse,
   checkBlend,
+  canCompletePhonicsStep,
+  phonicsCardIds,
+  visitPhonicsCard,
+  visitedPhonicsCards,
   completeStep,
   dunesDone,
   forestDone,
@@ -35,11 +39,91 @@ import {
   type Progress,
   updateBlendDraft,
 } from "./progress";
+function finishPhonicsStep(state: Progress): Progress {
+  state = { ...state, page: "lesson" };
+  for (const card of phonicsCardIds(state)) state = visitPhonicsCard(state, card);
+  return completeStep(state);
+}
 function finishForest(): Progress {
   let state = { ...initialProgress };
-  for (let i = 0; i < 3; i++) state = completeStep(state);
+  for (let i = 0; i < 3; i++) state = finishPhonicsStep(state);
   return state;
 }
+describe("required phonics card visits", () => {
+  it("requires the large sound card and each distinct example before advancing", () => {
+    let state = openPlanet(initialProgress, "forest");
+    expect(phonicsCardIds(state)).toEqual(["sound", "sun", "snake", "sock"]);
+    expect(completeStep(state)).toBe(state);
+    for (const card of ["sun", "snake", "sock"]) state = visitPhonicsCard(state, card);
+    expect(visitedPhonicsCards(state)).toHaveLength(3);
+    expect(canCompletePhonicsStep(state)).toBe(false);
+    expect(completeStep(state)).toBe(state);
+    expect(visitPhonicsCard(state, "sun")).toBe(state);
+    expect(visitPhonicsCard(state, "not-a-card")).toBe(state);
+    state = visitPhonicsCard(state, "sound");
+    expect(canCompletePhonicsStep(state)).toBe(true);
+    const next = completeStep(state);
+    expect(next.step).toBe(1);
+    expect(next.completed).toEqual([0]);
+    expect(visitedPhonicsCards(next)).toEqual([]);
+    expect(completeStep(next)).toBe(next);
+    expect(visitedPhonicsCards({ ...next, step: 0 })).toEqual(phonicsCardIds(state));
+  });
+  it("does not visit or complete a locked, non-lesson or scene-review step", () => {
+    const outside = initialProgress;
+    expect(visitPhonicsCard(outside, "sound")).toBe(outside);
+    expect(completeStep(outside)).toBe(outside);
+    const locked = { ...outside, page: "lesson" as const, step: 2 };
+    expect(visitPhonicsCard(locked, "sound")).toBe(locked);
+    expect(completeStep(locked)).toBe(locked);
+    const review = { ...outside, page: "lesson" as const, lessonIndex: 3 };
+    expect(phonicsCardIds(review)).toEqual([]);
+    expect(visitPhonicsCard(review, "sound")).toBe(review);
+    expect(completeStep(review)).toBe(review);
+  });
+  it("restores partial visits, ignores malformed cards and prevents future-step drafts", () => {
+    let state = visitPhonicsCard(openPlanet(initialProgress, "forest"), "sock");
+    state = visitPhonicsCard(state, "sound");
+    const restored = parseProgress(JSON.stringify(state));
+    expect(visitedPhonicsCards(restored)).toEqual(["sound", "sock"]);
+    expect(canCompletePhonicsStep(restored)).toBe(false);
+    expect(parseProgress(JSON.stringify({ ...state, phonicsCards: {
+      s: ["sun", "sun", "sound", "apple", 1], a: ["sound", "apple"], unknown: ["sound"],
+    } })).phonicsCards).toEqual({ s: ["sound", "sun"] });
+    for (const phonicsCards of [null, false, [], "bad"]) {
+      expect(parseProgress(JSON.stringify({ ...state, phonicsCards })).phonicsCards).toEqual({});
+    }
+  });
+  it("preserves old completion but requires fresh visits for a forest replay without new fuel", () => {
+    const old = { ...finishForest() };
+    delete old.phonicsCards;
+    const restored = parseProgress(JSON.stringify(old));
+    expect(forestDone(restored)).toBe(true);
+    expect(planetStatus(restored, "dunes")).toBe("current");
+    const replay = openPlanet(restored, "forest");
+    expect(replay.phonicsCards).toEqual({});
+    expect(completeStep(replay)).toBe(replay);
+    let replayed = replay;
+    for (const _ of lessons[0].steps) replayed = finishPhonicsStep(replayed);
+    expect(reconcileRewards(replayed).space).toEqual(restored.space);
+    expect(litCount(replayed)).toBe(1);
+    expect(openPlanet(replayed, "forest").phonicsCards).toEqual({});
+  });
+  it("keeps visits in their own course when switching, including archives without the field", () => {
+    const first = finishCourse(initialProgress);
+    const second = selectCourse(first, 1);
+    expect(second.phonicsCards).toEqual({});
+    let partial = visitPhonicsCard(openPlanet(second, "forest"), "pig");
+    partial = visitPhonicsCard(partial, "sound");
+    const back = selectCourse(partial, 0);
+    expect(back.phonicsCards).toEqual(first.phonicsCards);
+    const resumed = selectCourse(parseProgress(JSON.stringify(back)), 1);
+    expect(resumed.phonicsCards).toEqual({ p: ["sound", "pig"] });
+    const old = { ...back, records: { ...back.records, [lessons[1].id]: { ...back.records[lessons[1].id] } } };
+    delete old.records[lessons[1].id].phonicsCards;
+    expect(selectCourse(old, 1).phonicsCards).toEqual({});
+  });
+});
 describe("saved progress and planet route", () => {
   it("preserves optional v4 motion preferences and safely ignores malformed or legacy settings", () => {
     expect(parseProgress(JSON.stringify(initialProgress))).not.toHaveProperty("preferences");
@@ -194,7 +278,7 @@ function finishCourse(state: Progress) {
   const lesson = lessons[state.lessonIndex];
   const review = reviewForLesson(lesson.id);
   for (let i = 0; i < lesson.steps.length; i++)
-    state = review ? completeReviewSound(state) : completeStep(state);
+    state = review ? completeReviewSound(state) : finishPhonicsStep(state);
   if (review) {
     for (const i of lesson.blendRounds.keys())
       state = placeReviewWord(state, i);
@@ -243,7 +327,7 @@ describe("sequential courses", () => {
   });
   it("preserves per-course drafts, completion and volume when reviewing old lessons", () => {
     let state = selectCourse(finishCourse(initialProgress), 1);
-    for (let i = 0; i < 3; i++) state = completeStep(state);
+    for (let i = 0; i < 3; i++) state = finishPhonicsStep(state);
     state = { ...state, page: "blending", volume: 0.3, blendDraft: ["p"] };
     const review = selectCourse(state, 0);
     expect(courseDone(review, 0)).toBe(true);

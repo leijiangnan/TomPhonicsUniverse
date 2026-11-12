@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { lessons } from "../src/data/lesson";
-import { parseProgress, selectCourse, type Progress } from "../src/lib/progress";
+import { parseProgress, selectCourse, openPlanet, visitPhonicsCard, canCompletePhonicsStep, completeStep, type Progress } from "../src/lib/progress";
 import { reconcileRewards, travel, fuel, confirmStation } from "../src/lib/space";
 import { startPractice, observePractice } from "../src/lib/practice";
 import { readBackup } from "../src/lib/backup";
@@ -11,6 +11,7 @@ import { newDialogue } from "../src/lib/dialogue";
 import { ProgressConflict } from "../src/lib/progressApi";
 import { ProgressStore } from "./progressStore";
 import { mergeLegacyProgress } from "./mergeLegacy";
+import { travelNodes } from "../src/data/space/route";
 
 const directories: string[] = [], stores: ProgressStore[] = [];
 function database() {
@@ -33,6 +34,24 @@ afterEach(() => {
   for (const dir of directories.splice(0)) rmSync(dir, { recursive: true, force: true });
 });
 describe("computer-backed shared progress", () => {
+  it("persists partial card visits and safely unions independent legacy card drafts", () => {
+    const { store, file } = database();
+    const first = visitPhonicsCard(openPlanet(parseProgress(null), "forest"), "sound");
+    const saved = store.save(visitPhonicsCard(first, "sun"), 0);
+    const second = new ProgressStore(file); stores.push(second);
+    expect(second.read()).toEqual(saved);
+    expect(canCompletePhonicsStep(second.read().progress)).toBe(false);
+    const extra = visitPhonicsCard(visitPhonicsCard(openPlanet(parseProgress(null), "forest"), "sock"), "snake");
+    const migrated = second.migrate(JSON.stringify(extra));
+    expect(migrated.progress.phonicsCards).toEqual({ s: ["sound", "sun", "snake", "sock"] });
+    expect(canCompletePhonicsStep(migrated.progress)).toBe(true);
+    expect(completeStep(migrated.progress).step).toBe(1);
+    expect(fuel(migrated.progress.space)).toBe(0);
+    const old = { ...parseProgress(null) };
+    delete old.phonicsCards;
+    expect(second.migrate(JSON.stringify(old)).progress.phonicsCards).toEqual(migrated.progress.phonicsCards);
+    expect(readBackup(JSON.stringify(store.read().progress))).toEqual(store.read().progress);
+  });
   it("starts at revision zero and persists across independent database connections", () => {
     const { store, file } = database();
     expect(store.read().revision).toBe(0);
@@ -106,5 +125,19 @@ describe("computer-backed shared progress", () => {
     const dir = mkdtempSync(join(tmpdir(), "tom-phonics-corrupt-")); directories.push(dir);
     const file = join(dir, "progress.sqlite"); writeFileSync(file, "broken database");
     expect(() => new ProgressStore(file)).toThrow();
+  });
+  it("persists all nine stops and never drops new discoveries when an old browser migrates", () => {
+    const { store, file } = database();
+    const old = JSON.stringify(travel(completed(1), "station"));
+    let p = completed(8);
+    for (const node of travelNodes.slice(1)) p = travel(p, node.id);
+    const saved = store.save(p, 0);
+    const restarted = new ProgressStore(file); stores.push(restarted);
+    expect(restarted.read()).toEqual(saved);
+    const migrated = restarted.migrate(old);
+    expect(migrated.progress.space.current).toBe("catalog-8");
+    expect(fuel(migrated.progress.space)).toBe(220);
+    expect(migrated.progress.space.transactions.filter((event) => event.id.startsWith("travel:"))).toHaveLength(8);
+    expect(restarted.migrate(old)).toEqual(migrated);
   });
 });

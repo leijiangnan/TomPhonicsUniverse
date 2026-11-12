@@ -1,15 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowLeftRight, ArrowRight, Check, Fuel, Rocket, Volume2 } from "lucide-react";
 import { Badge } from "../components/space/SpaceArt";
 import { FlightScene } from "../components/space/FlightScene";
-import { nextExplorationNode } from "../data/space/catalog";
+import { RevisitPicker } from "../components/space/RevisitPicker";
+import { routeNode, travelNodes } from "../data/space/route";
 import { UniverseOverview } from "../components/space/UniverseOverview";
 import { Robot, Cube } from "../components/Art";
 import { MissionMapArt } from "../components/MissionBrief";
 import {
   fuel,
-  stationFound,
-  STATION_COST,
+  nextDestination,
+  travelStatus,
+  visitedNodes,
   type SpaceNodeId,
 } from "../lib/space";
 import { stationLines } from "../data/space/station";
@@ -22,6 +24,7 @@ export function SpaceMap({
   onPlay,
   onPractice,
   atmosphereRunning,
+  animateFlights = atmosphereRunning,
 }: {
   progress: Progress;
   onTravel: (id: SpaceNodeId) => Promise<boolean>;
@@ -30,44 +33,62 @@ export function SpaceMap({
   onPlay: (src: string) => void;
   onPractice?: () => void;
   atmosphereRunning: boolean;
+  animateFlights?: boolean;
 }) {
   const [regionIndex, setRegionIndex] = useState(0);
-  const [flying, setFlying] = useState(false);
+  const [flight, setFlight] = useState<{ from: SpaceNodeId; to: SpaceNodeId } | null>(null);
+  const flying = flight !== null;
   const [busy, setBusy] = useState(false);
   const [visit, setVisit] = useState(false);
+  const [revisitsOpen, setRevisitsOpen] = useState(false);
+  const [travelError, setTravelError] = useState("");
+  const pending = useRef(false);
+  const page = useRef<HTMLElement>(null);
   const s = progress.space;
-  const balance = fuel(s),
-    found = stationFound(s);
-  const nextNode = nextExplorationNode(found);
+  const balance = fuel(s);
+  const currentNode = routeNode(s.current);
+  const nextNode = nextDestination(s);
+  const destination = nextNode ?? routeNode(s.current === "earth" ? "station" : "earth");
+  const status = travelStatus(s, destination.id);
+  const count = visitedNodes(s).length;
   useEffect(() => {
-    if (!flying) return;
-    const timer = setTimeout(() => setFlying(false), 4000);
+    if (!flight) return;
+    const timer = setTimeout(() => setFlight(null), 4000);
     return () => clearTimeout(timer);
-  }, [flying]);
-  async function go(target: SpaceNodeId) {
-    if (busy || flying) return;
+  }, [flight]);
+  useEffect(() => { setVisit(false); setRevisitsOpen(false); setTravelError(""); }, [s.current]);
+  async function go(target: SpaceNodeId): Promise<boolean> {
+    if (pending.current || flying) return false;
+    pending.current = true;
     setBusy(true);
+    setTravelError("");
+    const from = s.current;
     try {
       if (await onTravel(target)) {
         setVisit(false);
-        if (atmosphereRunning) setFlying(true);
+        setRevisitsOpen(false);
+        if (animateFlights) setFlight({ from, to: target });
+        window.scrollTo(0, 0);
+        page.current?.closest<HTMLElement>(".app-shell")?.scrollTo(0, 0);
+        return true;
       }
+      setTravelError("本次航行未提交，请检查保存提示后重试。");
+      return false;
     } finally {
+      pending.current = false;
       setBusy(false);
     }
   }
   const line = stationLines[Math.min(s.stationStep, 2)];
   return (
-    <main className="voyage-page">
+    <main className="voyage-page" ref={page}>
       <div className="activity-heading voyage-heading">
         <div>
           <h1>我的星际航行</h1>
           <p>
             {flying
-              ? `飞船正在前往${s.current === "earth" ? "地球" : "补给空间站"}。`
-              : s.current === "earth"
-              ? "从地球出发，去空间站看看。"
-              : "已抵达补给空间站！"}
+              ? `飞船正在前往${routeNode(flight.to).name}。`
+              : <>当前位置：{currentNode.name}<span className="voyage-count"> · 已到达 {count} / {travelNodes.length}</span></>}
           </p>
         </div>
         <div className="fuel-meter" aria-label={`探索燃料 ${balance}`}>
@@ -157,83 +178,51 @@ export function SpaceMap({
           <section className="flight-console" aria-label="航行控制台">
             <div className="console-rim" aria-hidden="true"><i /><i /><i /><b /></div>
             <div className="console-task">
-              <span className="eyebrow">{s.current === "earth" ? found ? "免费回访" : "第一段旅程" : s.badge ? "你的探索收藏" : "抵达后的任务"}</span>
-          <div className="voyage-action" aria-live="polite">
-            {flying ? (
-              <p className="flight-status">
-                <Rocket size={24} />
-                正在航行，即将抵达…
-              </p>
-            ) : s.current === "earth" ? (
-              <>
-                <div>
-                  <h2>{found ? "再去空间站看看" : "第一站：补给空间站"}</h2>
-                  <p>{found ? "往返免费，不消耗燃料。" : "准备好就出发吧。"}</p>
-                </div>
-                <button
-                  className="button primary"
-                  disabled={busy}
-                  onClick={() =>
-                    found || balance >= STATION_COST ? void go("station") : onLearn()
-                  }
-                >
-                  {found
-                    ? "免费回访"
-                    : balance >= STATION_COST
-                      ? "开始航行"
-                      : "去学习，获得燃料"}
-                  <Rocket size={22} />
-                </button>
-              </>
-            ) : (
-              <>
-                <div>
-                  <h2>机器人在等你</h2>
-                  <p>
-                    {s.badge
-                      ? "补给先锋已收集，可以随时查看。"
-                      : "打个招呼，领取你的第一张收藏卡。"}
-                  </p>
-                </div>
-                <div className="voyage-controls">
-                  <button
-                    className="button primary"
-                    disabled={busy}
-                    onClick={() => setVisit(true)}
-                  >
-                    {s.badge ? "查看收藏卡" : "进入补给站"}
-                    <ArrowRight size={22} />
+              <span className="eyebrow">{nextNode ? "继续探索地月空间" : "地月空间已全部到达"}</span>
+              <div className="voyage-action" aria-live="polite">
+                {flight ? <p className="flight-status"><Rocket size={24} />正在前往{routeNode(flight.to).name}…</p> : <>
+                  <div>
+                    <h2>{nextNode ? "下一个新航点：" : "免费回访："}{destination.name}</h2>
+                    <p>{status.kind === "free" ? "已到达的地点免费回访，不消耗燃料。"
+                      : status.shortfall > 0 ? `首次需要 ${status.cost} 燃料，还差 ${status.shortfall}。`
+                      : `首次需要 ${status.cost} 燃料，准备好就出发。`}</p>
+                  </div>
+                  <button className="button primary" disabled={busy}
+                    onClick={() => status.kind === "fuel" ? onLearn() : void go(destination.id)}>
+                    {busy ? "正在保存…" : status.kind === "fuel" ? "去学习，补充燃料"
+                      : status.kind === "free" ? destination.id === "earth" ? "免费返回地球" : `免费回访${destination.name}`
+                      : `前往${destination.name}`}<Rocket size={22} />
                   </button>
-                  <button
-                    className="button secondary"
-                    disabled={busy}
-                    onClick={() => void go("earth")}
-                  >
-                    免费返回地球 <Rocket size={22} />
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-              {!found && <div className="console-budget" aria-label="下一站燃料">
-                <span>首次航行 {STATION_COST} 燃料</span><progress aria-label="下一站燃料储备" value={Math.min(balance, STATION_COST)} max={STATION_COST} /><strong>{balance >= STATION_COST ? "已经备好" : `还差 ${STATION_COST - balance}`}</strong>
+                </>}
+              </div>
+              {!flying && status.cost > 0 && <div className="console-budget" aria-label="下一站燃料">
+                <span>首次航行 {status.cost} 燃料</span>
+                <progress aria-label="下一站燃料储备" value={Math.min(balance, status.cost)} max={status.cost} />
+                <strong>{status.shortfall > 0 ? `还差 ${status.shortfall}` : "已经备好"}</strong>
               </div>}
-              {found && !flying && <p className="future-destination">目前仅开放地球与补给空间站。{nextNode.name}等后续地点筹备中，燃料会保留。</p>}
-              {s.current === "station" && s.badge && onPractice && <button className="button secondary console-practice" onClick={onPractice}>出发前，复习一下 <ArrowRight size={20} /></button>}
+              {!flying && <div className="voyage-controls console-utilities">
+                {count > 1 && <button className="button secondary" disabled={busy} onClick={() => { setTravelError(""); setRevisitsOpen(true); }}>免费回访<ArrowLeftRight size={20} /></button>}
+                {s.current !== "earth" && destination.id !== "earth" && <button className="button secondary" disabled={busy} onClick={() => void go("earth")}>免费返回地球</button>}
+                {s.current === "station" && <button className="button secondary" disabled={busy} onClick={() => setVisit(true)}>{s.badge ? "查看补给收藏卡" : "进入补给站"}<ArrowRight size={20} /></button>}
+                {s.current === "station" && s.badge && onPractice && <button className="button secondary" onClick={onPractice}>复习一下<ArrowRight size={20} /></button>}
+              </div>}
+              {travelError && <p className="voyage-error" role="alert">{travelError}</p>}
+              {!flying && <p className="future-destination">{nextNode ? count > 1 ? "新航点按顺序探索；已到达的地点可随时免费回访。" : "点下方星图可查看各个航点。" : "地月空间 9 个航点都已到达！可以随时免费回访。其他星域仍在筹备。"}</p>}
               {courseDone(progress, 2) && <div className="console-navigation"><MissionMapArt pieces={3} installed /><span>第 3 课的探险地图，已装进驾驶舱</span></div>}
             </div>
             <div className="console-ship">
-              <FlightScene destination={s.current} flying={flying} running={atmosphereRunning} />
-              <div className="console-route" aria-hidden="true"><span>地球</span><ArrowLeftRight size={16} /><span>补给空间站</span></div>
-              <span className="console-location">{flying ? "正在航行" : s.current === "earth" ? "停靠地球" : "停靠补给空间站"}</span>
+              <FlightScene from={flight?.from ?? s.current} destination={flight?.to ?? destination.id} flying={flying} running={atmosphereRunning} />
+              <div className="console-route" aria-hidden="true"><span>{routeNode(flight?.from ?? s.current).name}</span><ArrowLeftRight size={16} /><span>{routeNode(flight?.to ?? destination.id).name}</span></div>
+              <span className="console-location">{flight ? "正在航行" : `停靠${currentNode.name}`}</span>
             </div>
           </section>
-          <UniverseOverview space={s} regionIndex={regionIndex} setRegionIndex={setRegionIndex} flying={flying} />
+          <UniverseOverview space={s} regionIndex={regionIndex} setRegionIndex={setRegionIndex} flying={flying} busy={busy} onTravel={go} onLearn={onLearn} />
           <div className="voyage-bottom">
-            <span>游戏航线 · 非真实比例 · 补给空间站为虚构设施</span>
+            <span>游戏航点与观测位置 · 非真实比例或真实登陆 · 补给站等游戏设施为虚构</span>
           </div>
         </>
       )}
+      {revisitsOpen && <RevisitPicker space={s} busy={busy || flying} error={travelError} onTravel={go} onClose={() => setRevisitsOpen(false)} />}
     </main>
   );
 }
